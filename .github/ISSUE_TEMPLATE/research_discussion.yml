@@ -1,0 +1,95 @@
+name: 🔬 Research Discussion
+description: Discuss research ideas, methodologies, or findings
+title: "[RESEARCH] "
+labels: ["research", "discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your research ideas, findings, or questions related to causal reasoning in LLMs!
+
+  - type: dropdown
+    id: research-type
+    attributes:
+      label: Research Area
+      description: What aspect of causal reasoning research?
+      options:
+        - LLM Evaluation Methodology
+        - Causal Inference Theory
+        - Interface Design Studies
+        - Benchmark Development
+        - Cognitive Science Applications
+        - Educational Tool Design
+        - Performance Analysis
+        - Reproducibility Study
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: research-question
+    attributes:
+      label: Research Question/Topic
+      description: What research question or topic would you like to discuss?
+      placeholder: "How can we better measure..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: Background/Context
+      description: Relevant background information or prior work
+      placeholder: |
+        - Related papers: ...
+        - Previous findings: ...
+        - Theoretical foundation: ...
+
+  - type: textarea
+    id: methodology
+    attributes:
+      label: Proposed Methodology (if applicable)
+      description: How would you approach this research question?
+      placeholder: |
+        1. Data collection approach...
+        2. Experimental design...
+        3. Analysis methods...
+
+  - type: textarea
+    id: expected-impact
+    attributes:
+      label: Expected Impact
+      description: How would this advance the field of causal reasoning research?
+      placeholder: This research could help...
+
+  - type: textarea
+    id: collaboration
+    attributes:
+      label: Collaboration Opportunities
+      description: Are you looking for collaborators or have resources to share?
+      placeholder: |
+        - Looking for: ...
+        - Can provide: ...
+        - Timeline: ...
+
+  - type: checkboxes
+    id: resources
+    attributes:
+      label: Available Resources
+      options:
+        - label: I have access to computational resources for experiments
+        - label: I have access to human subject testing capabilities
+        - label: I have domain expertise in causal inference
+        - label: I have expertise in LLM evaluation
+        - label: I can provide funding/grant support
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Relevant papers, links, or resources
+      placeholder: |
+        - [Paper Title](URL) - Brief description
+        - [Tool/Dataset](URL) - Brief description
