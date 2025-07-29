@@ -1,0 +1,54 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alert.rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'causal-interface-gym'
+    static_configs:
+      - targets: ['localhost:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # System metrics (if node_exporter is available)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 15s
+
+  # Docker container metrics (if cadvisor is available)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']
+    scrape_interval: 15s
+
+  # Python process metrics
+  - job_name: 'python-app'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+    honor_labels: true
+
+  # Health check endpoint
+  - job_name: 'health-check'
+    static_configs:
+      - targets: ['localhost:5000']
+    metrics_path: '/health'
+    scrape_interval: 30s
+
+# Remote write configuration (optional, for long-term storage)
+# remote_write:
+#   - url: "http://influxdb:8086/api/v1/prom/write?db=prometheus"

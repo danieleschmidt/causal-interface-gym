@@ -1,0 +1,46 @@
+# Safety policy for dependency vulnerability scanning
+
+# Security configuration
+security:
+  # Ignore vulnerabilities below this CVSS score
+  ignore-cvss-severity-below: 7.0
+  
+  # Don't ignore vulnerabilities with unknown severity
+  ignore-cvss-unknown-severity: false
+  
+  # Continue on errors instead of failing
+  continue-on-error: false
+  
+  # Ignore these specific vulnerability IDs (use with caution)
+  ignore-vulnerabilities:
+    # Example: Ignore specific CVE if it doesn't apply to our use case
+    # - 12345  # Description of why this is safe to ignore
+    
+  # Ignore development dependencies
+  ignore-unpinned-requirements: false
+
+# File patterns to scan
+files:
+  - requirements-dev.txt
+  - pyproject.toml
+
+# Output format
+output:
+  format: json
+  save-json: safety-report.json
+
+# API configuration
+api:
+  # Use Safety DB API key if available
+  key: null  # Set via SAFETY_API_KEY environment variable
+  
+  # Timeout for API requests (seconds)
+  timeout: 60
+
+# Database configuration
+db:
+  # Path to local safety database (optional)
+  path: null
+  
+  # Auto-update local database
+  auto-update: true
