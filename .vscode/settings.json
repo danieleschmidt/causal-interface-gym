@@ -1,0 +1,128 @@
+{
+  // Python configuration
+  "python.defaultInterpreterPath": "./venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.linting.banditEnabled": true,
+  
+  // Ruff configuration (replaces flake8, isort, etc.)
+  "ruff.enable": true,
+  "ruff.fixAll": true,
+  "ruff.organizeImports": true,
+  
+  // Black formatter
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length", "88"],
+  
+  // Editor settings
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll.ruff": true
+  },
+  
+  // File associations
+  "files.associations": {
+    "*.yml": "yaml",
+    "*.yaml": "yaml",
+    "Dockerfile*": "dockerfile",
+    ".pre-commit-config.yaml": "yaml"
+  },
+  
+  // Test configuration
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "tests/",
+    "--cov=causal_interface_gym",
+    "--cov-report=html",
+    "--cov-report=term-missing"
+  ],
+  
+  // Git configuration
+  "git.ignoreLimitWarning": true,
+  "git.autofetch": true,
+  
+  // Jupyter configuration
+  "jupyter.askForKernelRestart": false,
+  "jupyter.runStartupCommands": [
+    "%load_ext autoreload",
+    "%autoreload 2"
+  ],
+  
+  // Research-specific settings
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/htmlcov": true,
+    "**/*.egg-info": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  
+  // Security settings
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/.hg/store/**": true,
+    "**/venv/**": true,
+    "**/__pycache__/**": true
+  },
+  
+  // Documentation settings
+  "markdown.preview.breaks": true,
+  "markdown.preview.linkify": true,
+  
+  // Spell checking for research documents
+  "cSpell.words": [
+    "causal",
+    "causality",
+    "confounders",
+    "interventions", 
+    "observational",
+    "counterfactual",
+    "backdoor",
+    "frontdoor",
+    "collider",
+    "mediator",
+    "moderator",
+    "DAGs",
+    "SATE",
+    "CATE",
+    "ITT",
+    "LATE",
+    "SUTVA",
+    "ignorability",
+    "unconfoundedness",
+    "propensity",
+    "stratification",
+    "randomization",
+    "instrumental",
+    "discontinuity",
+    "endogeneity",
+    "exogeneity",
+    "heterogeneity",
+    "homogeneity"
+  ],
+  
+  // Extension recommendations
+  "extensions.recommendations": [
+    "ms-python.python",
+    "ms-python.black-formatter", 
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "ms-toolsai.jupyter",
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-json",
+    "streetsidesoftware.code-spell-checker",
+    "github.vscode-pull-request-github",
+    "github.copilot",
+    "ms-vscode.test-adapter-converter"
+  ]
+}

@@ -1,0 +1,98 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE] "
+labels: ["enhancement", "needs-discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Help us understand what you'd like to see added.
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - New Causal Environment
+        - UI Component Enhancement
+        - Metrics/Evaluation
+        - LLM Integration
+        - Performance Improvement
+        - Documentation
+        - Developer Experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: What would you like to happen?
+      placeholder: Describe your ideal solution...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Any alternative solutions or features you've considered?
+      placeholder: Describe alternatives...
+
+  - type: code
+    id: example-usage
+    attributes:
+      label: Example Usage
+      description: How would this feature be used?
+      language: python
+      placeholder: |
+        from causal_interface_gym import NewFeature
+        
+        # Example usage...
+        feature = NewFeature()
+        result = feature.do_something()
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would significantly improve my workflow
+        - High - Blocking my research/work
+        - Critical - Essential for project success
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contributions
+    attributes:
+      label: Contribution Willingness
+      options:
+        - label: I would be willing to contribute this feature
+        - label: I would be willing to help test this feature
+        - label: I would be willing to help with documentation
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues to ensure this hasn't been requested
+          required: true
+        - label: I have provided a clear problem statement and solution
+          required: true
