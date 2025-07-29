@@ -1,0 +1,163 @@
+version: '3.8'
+
+services:
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/.venv  # Exclude virtual environment
+    ports:
+      - "8501:8501"  # Streamlit
+      - "8888:8888"  # Jupyter
+    environment:
+      - PYTHONPATH=/app/src
+      - ENVIRONMENT=development
+    command: >
+      bash -c "
+        pip install -e '.[dev,ui,docs]' &&
+        streamlit run examples/basic_usage.py --server.port=8501 --server.address=0.0.0.0
+      "
+    stdin_open: true
+    tty: true
+
+  # Production environment
+  prod:
+    build:
+      context: .
+      target: production
+    environment:
+      - PYTHONPATH=/app/src
+      - ENVIRONMENT=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import causal_interface_gym; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Testing environment
+  test:
+    build:
+      context: .
+      target: testing
+    volumes:
+      - .:/app
+      - ./test-results:/app/test-results
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTEST_ARGS=--cov=causal_interface_gym --cov-report=html:/app/test-results/coverage
+    command: >
+      bash -c "
+        make test &&
+        pytest tests/integration/ -v &&
+        pytest tests/benchmarks/ --benchmark-json=/app/test-results/benchmark.json
+      "
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    working_dir: /app/docs
+    command: >
+      bash -c "
+        pip install -e '.[docs]' &&
+        sphinx-build -b html . _build/html &&
+        python -m http.server 8000 --directory _build/html
+      "
+
+  # Jupyter notebook server
+  jupyter:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - jupyter-data:/home/appuser/.jupyter
+    environment:
+      - PYTHONPATH=/app/src
+      - JUPYTER_ENABLE_LAB=yes
+    command: >
+      bash -c "
+        pip install jupyterlab &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+      "
+
+  # Benchmarking service
+  benchmark:
+    build:
+      context: .
+      target: benchmarking
+    volumes:
+      - ./benchmark-results:/app/benchmark-results
+    environment:
+      - PYTHONPATH=/app/src
+    command: >
+      bash -c "
+        pytest tests/benchmarks/ --benchmark-json=/app/benchmark-results/benchmark.json --benchmark-html=/app/benchmark-results/benchmark.html
+      "
+
+  # Code quality checks
+  quality:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - ./quality-reports:/app/quality-reports
+    command: >
+      bash -c "
+        make lint > /app/quality-reports/lint.txt 2>&1 &&
+        make format &&
+        mypy src/ --html-report /app/quality-reports/mypy &&
+        bandit -r src/ -f html -o /app/quality-reports/security.html
+      "
+
+  # Database for storing experiment results (optional)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: causal_experiments
+      POSTGRES_USER: causal_user
+      POSTGRES_PASSWORD: causal_pass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U causal_user -d causal_experiments"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  jupyter-data:
+  postgres-data:
+  redis-data:
+
+networks:
+  default:
+    name: causal-interface-gym-network
