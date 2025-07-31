@@ -1,0 +1,120 @@
+# OpenTelemetry Collector Configuration
+# Advanced observability setup for Causal Interface Gym
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'causal-interface-gym'
+          static_configs:
+            - targets: ['localhost:8000']
+          scrape_interval: 15s
+          metrics_path: /metrics
+        
+        - job_name: 'python-app'
+          static_configs:
+            - targets: ['localhost:8080']
+          scrape_interval: 30s
+
+  hostmetrics:
+    collection_interval: 60s
+    scrapers:
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+      memory:
+        metrics:
+          system.memory.utilization:
+            enabled: true
+      filesystem:
+        metrics:
+          system.filesystem.utilization:
+            enabled: true
+      network:
+      process:
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+  
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+  
+  resource:
+    attributes:
+      - key: service.name
+        value: causal-interface-gym
+        action: upsert
+      - key: service.version
+        from_attribute: version
+        action: upsert
+      - key: deployment.environment
+        from_attribute: env
+        action: upsert
+
+  probabilistic_sampler:
+    sampling_percentage: 100.0
+
+  span:
+    name:
+      to_attributes:
+        rules:
+          - ^/api/v1/(?P<endpoint>.*)$
+      from_attributes: ["http.route"]
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: causal_gym
+    const_labels:
+      environment: "${ENVIRONMENT:-development}"
+    
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  
+  logging:
+    loglevel: info
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  otlp:
+    endpoint: "https://api.honeycomb.io"
+    headers:
+      "x-honeycomb-team": "${HONEYCOMB_API_KEY}"
+      "x-honeycomb-dataset": "causal-interface-gym"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, probabilistic_sampler, span]
+      exporters: [jaeger, otlp, logging]
+    
+    metrics:
+      receivers: [otlp, prometheus, hostmetrics]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheus, otlp, logging]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [otlp, logging]
+
+  extensions: [health_check, pprof, zpages]
+  telemetry:
+    logs:
+      level: "info"
+    metrics:
+      level: "detailed"
