@@ -39,7 +39,7 @@
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "@storybook/react": "^7.6.4",
-    "@storybook/addon-essentials": "^7.6.4"
+    "@storybook/addon-essentials": "^8.6.14"
   },
   "engines": {
     "node": ">=18.0.0",
