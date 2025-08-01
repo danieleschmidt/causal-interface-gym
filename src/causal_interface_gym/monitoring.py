@@ -82,6 +82,7 @@ def monitor_performance(func: Callable) -> Callable:
     """Decorator to monitor function performance."""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        """Wrapper function."""
         start_time = time.time()
         function_name = f"{func.__module__}.{func.__name__}"
         
