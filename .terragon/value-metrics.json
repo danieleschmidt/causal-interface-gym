@@ -1,18 +1,18 @@
 {
-  "last_updated": "2025-08-01T02:55:23.150598",
+  "last_updated": "2025-08-01T02:56:31.688246",
   "backlog_metrics": {
-    "total_items": 3,
+    "total_items": 2,
     "average_age_days": 0.0,
     "debt_ratio": 0.0,
     "velocity_trend": "stable",
-    "discovery_rate": 0.42857142857142855,
-    "completion_rate": 40.0,
+    "discovery_rate": 0.2857142857142857,
+    "completion_rate": 60.0,
     "value_delivered": 0,
     "learning_accuracy": 50.0
   },
   "execution_summary": {
-    "total_completed": 2,
+    "total_completed": 3,
     "success_rate": 0.0,
-    "average_effort": 6.761388888888889e-06
+    "average_effort": 7.228055555555556e-05
   }
 }
