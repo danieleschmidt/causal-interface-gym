@@ -1,22 +1,5 @@
 [
   {
-    "id": "auto_1511",
-    "title": "Add docstrings to 1 functions in monitoring.py",
-    "description": "Discovered 1 related signals: Function wrapper missing docstring",
-    "category": "documentation",
-    "files_affected": [
-      "src/causal_interface_gym/monitoring.py"
-    ],
-    "effort_estimate": 0.25,
-    "wsjf_score": 44.0,
-    "ice_score": 216.0,
-    "technical_debt_score": 15.0,
-    "composite_score": 50.652152152152155,
-    "risk_level": 0.3,
-    "discovered_at": "2025-08-01T02:49:06.646405",
-    "source": "autonomous_discovery"
-  },
-  {
     "id": "auto_9174",
     "title": "Address performance_test_exists issues",
     "description": "Discovered 1 related signals: Performance tests found - ensure they're run regul...",

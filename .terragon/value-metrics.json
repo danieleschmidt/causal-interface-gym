@@ -1,0 +1,18 @@
+{
+  "last_updated": "2025-08-01T02:54:46.125294",
+  "backlog_metrics": {
+    "total_items": 4,
+    "average_age_days": 0.0,
+    "debt_ratio": 0.0,
+    "velocity_trend": "stable",
+    "discovery_rate": 0.5714285714285714,
+    "completion_rate": 20.0,
+    "value_delivered": 0,
+    "learning_accuracy": 50.0
+  },
+  "execution_summary": {
+    "total_completed": 1,
+    "success_rate": 0.0,
+    "average_effort": 3.3819444444444446e-06
+  }
+}
