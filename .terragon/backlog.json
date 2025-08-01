@@ -1,22 +1,5 @@
 [
   {
-    "id": "auto_4163",
-    "title": "Address outdated_npm_dependency issues",
-    "description": "Discovered 6 related signals: Update @types/d3 from unknown to 7.4.3, Update d3 from unknown to 7.9.0, Update plotly.js from unknown to 3.0.3",
-    "category": "maintenance",
-    "files_affected": [
-      "package.json"
-    ],
-    "effort_estimate": 2.0,
-    "wsjf_score": 5.0,
-    "ice_score": 135.0,
-    "technical_debt_score": 15.0,
-    "composite_score": 10.84134134134134,
-    "risk_level": 0.3,
-    "discovered_at": "2025-08-01T02:56:46.597060",
-    "source": "autonomous_discovery"
-  },
-  {
     "id": "auto_5103",
     "title": "Address performance_test_exists issues",
     "description": "Discovered 1 related signals: Performance tests found - ensure they're run regul...",
