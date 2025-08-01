@@ -1,0 +1,62 @@
+scoring:
+  # Advanced repository weights - optimized for mature codebase
+  weights:
+    wsjf: 0.5           # Weighted Shortest Job First
+    ice: 0.1            # Impact Confidence Ease  
+    technicalDebt: 0.3  # Technical debt priority
+    security: 0.1       # Security improvements
+  
+  thresholds:
+    minScore: 15        # Minimum composite score for execution
+    maxRisk: 0.7        # Maximum acceptable risk level
+    securityBoost: 2.0  # Security vulnerability multiplier
+    complianceBoost: 1.8 # Compliance urgency multiplier
+    modernizationBoost: 1.5 # Modernization opportunity boost
+
+discovery:
+  sources:
+    - gitHistory         # Parse commits for debt indicators
+    - staticAnalysis     # Code quality and complexity analysis
+    - dependencies       # Vulnerability and update tracking
+    - performance        # Performance regression detection
+    - documentation      # Outdated docs and missing coverage
+
+  tools:
+    staticAnalysis:
+      - ruff             # Python linting and code quality
+      - mypy             # Type checking analysis
+      - bandit           # Security vulnerability scanning
+      - radon            # Complexity metrics
+    security:
+      - safety           # Python dependency vulnerability scanning
+      - bandit           # Security linting
+      - trivy            # Container and dependency scanning
+    performance:
+      - pytest-benchmark # Performance regression testing
+      - py-spy           # Python profiling
+
+execution:
+  maxConcurrentTasks: 1
+  testRequirements:
+    minCoverage: 85     # Minimum test coverage threshold
+    performanceRegression: 3 # Max % performance regression allowed
+  rollbackTriggers:
+    - testFailure
+    - buildFailure
+    - securityViolation
+    - coverageDecrease
+
+repository:
+  maturityLevel: "advanced"
+  primaryLanguage: "python"
+  secondaryLanguages: ["typescript", "javascript"]
+  frameworks: ["react", "vite", "pytest", "fastapi"]
+  
+  characteristics:
+    hasComprehensiveTesting: true
+    hasAdvancedTooling: true
+    hasSecurityConfig: true
+    hasMonitoring: true
+    hasDocumentation: true
+    hasContainerization: true
+    hasAutomation: true
