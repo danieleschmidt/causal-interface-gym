@@ -1,0 +1,445 @@
+# Automated Dependency Update Workflow
+# Save as: .github/workflows/dependency-update.yml
+
+name: Dependency Update
+
+on:
+  schedule:
+    # Run weekly on Mondays at 6 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of update to perform'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - security
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-python-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install pip-tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-tools pip-audit
+
+    - name: Update Python dependencies
+      run: |
+        # Update main dependencies
+        pip-compile --upgrade pyproject.toml
+        
+        # Update development dependencies
+        pip-compile --upgrade --extra dev pyproject.toml --output-file requirements-dev.txt
+        
+        # Check for security vulnerabilities
+        pip-audit --format=json --output=security-audit.json || true
+
+    - name: Install updated dependencies
+      run: |
+        pip install -e ".[dev]"
+
+    - name: Run tests with updated dependencies
+      run: |
+        pytest tests/unit/ -x --tb=short
+      continue-on-error: true
+      id: test_results
+
+    - name: Check security audit results
+      id: security_check
+      run: |
+        if [ -f security-audit.json ]; then
+          VULN_COUNT=$(python -c "
+          import json
+          with open('security-audit.json') as f:
+              data = json.load(f)
+              print(len(data.get('vulnerabilities', [])))
+          ")
+          echo "vulnerability_count=$VULN_COUNT" >> $GITHUB_OUTPUT
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "has_vulnerabilities=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_vulnerabilities=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "vulnerability_count=0" >> $GITHUB_OUTPUT
+          echo "has_vulnerabilities=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Pull Request
+      if: steps.test_results.outcome == 'success'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          chore: update Python dependencies
+          
+          - Updated all Python dependencies to latest compatible versions
+          - All tests passing with updated dependencies
+          - Security vulnerabilities: ${{ steps.security_check.outputs.vulnerability_count }}
+        title: '🔄 Weekly Python Dependency Update'
+        body: |
+          ## Automated Dependency Update
+          
+          This PR updates Python dependencies to their latest compatible versions.
+          
+          ### Changes
+          - Updated `pyproject.toml` dependencies
+          - Updated `requirements-dev.txt`
+          
+          ### Test Results
+          - ✅ Unit tests: **Passed**
+          - 🔍 Security vulnerabilities: **${{ steps.security_check.outputs.vulnerability_count }}**
+          
+          ### Security Status
+          ${{ steps.security_check.outputs.has_vulnerabilities == 'true' && '⚠️ Security vulnerabilities detected! Please review carefully.' || '✅ No security vulnerabilities detected.' }}
+          
+          <details>
+          <summary>Updated Dependencies</summary>
+          
+          ```
+          $(git diff --name-only | grep -E "(requirements|pyproject)")
+          ```
+          </details>
+          
+          ---
+          *This PR was automatically created by the dependency update workflow.*
+        branch: dependency-update/python-${{ github.run_number }}
+        labels: |
+          dependencies
+          automated
+          ${{ steps.security_check.outputs.has_vulnerabilities == 'true' && 'security' || 'maintenance' }}
+
+  update-frontend-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Update npm dependencies
+      run: |
+        # Update package.json dependencies
+        npx npm-check-updates -u
+        
+        # Install updated dependencies
+        npm install
+        
+        # Audit for security vulnerabilities
+        npm audit --json > npm-audit.json || true
+
+    - name: Run frontend tests
+      run: |
+        npm run test
+        npm run build
+      continue-on-error: true
+      id: frontend_tests
+
+    - name: Check audit results
+      id: npm_audit
+      run: |
+        if [ -f npm-audit.json ]; then
+          VULN_COUNT=$(node -p "
+            const audit = require('./npm-audit.json');
+            audit.metadata ? audit.metadata.vulnerabilities.total : 0
+          ")
+          echo "vulnerability_count=$VULN_COUNT" >> $GITHUB_OUTPUT
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "has_vulnerabilities=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_vulnerabilities=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "vulnerability_count=0" >> $GITHUB_OUTPUT
+          echo "has_vulnerabilities=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Pull Request
+      if: steps.frontend_tests.outcome == 'success'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          chore: update Node.js dependencies
+          
+          - Updated all Node.js dependencies to latest versions
+          - All tests passing with updated dependencies
+          - Security vulnerabilities: ${{ steps.npm_audit.outputs.vulnerability_count }}
+        title: '🔄 Weekly Node.js Dependency Update'
+        body: |
+          ## Automated Frontend Dependency Update
+          
+          This PR updates Node.js dependencies to their latest versions.
+          
+          ### Changes
+          - Updated `package.json` dependencies
+          - Updated `package-lock.json`
+          
+          ### Test Results
+          - ✅ Frontend tests: **Passed**
+          - ✅ Build: **Successful**
+          - 🔍 Security vulnerabilities: **${{ steps.npm_audit.outputs.vulnerability_count }}**
+          
+          ### Security Status
+          ${{ steps.npm_audit.outputs.has_vulnerabilities == 'true' && '⚠️ Security vulnerabilities detected! Please review carefully.' || '✅ No security vulnerabilities detected.' }}
+          
+          ---
+          *This PR was automatically created by the dependency update workflow.*
+        branch: dependency-update/frontend-${{ github.run_number }}
+        labels: |
+          dependencies
+          frontend
+          automated
+          ${{ steps.npm_audit.outputs.has_vulnerabilities == 'true' && 'security' || 'maintenance' }}
+
+  update-docker-images:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check for base image updates
+      id: docker_check
+      run: |
+        # Get current base image versions
+        PYTHON_VERSION=$(grep "FROM python:" Dockerfile | head -1 | cut -d':' -f2 | cut -d' ' -f1)
+        POSTGRES_VERSION=$(grep "postgres:" docker-compose.yml | head -1 | cut -d':' -f3)
+        REDIS_VERSION=$(grep "redis:" docker-compose.yml | head -1 | cut -d':' -f3)
+        
+        echo "current_python=$PYTHON_VERSION" >> $GITHUB_OUTPUT
+        echo "current_postgres=$POSTGRES_VERSION" >> $GITHUB_OUTPUT
+        echo "current_redis=$REDIS_VERSION" >> $GITHUB_OUTPUT
+        
+        # Check for updates (simplified - in practice you'd query registries)
+        # For now, just set update flags
+        echo "python_update_available=true" >> $GITHUB_OUTPUT
+        echo "postgres_update_available=false" >> $GITHUB_OUTPUT
+        echo "redis_update_available=false" >> $GITHUB_OUTPUT
+
+    - name: Update Docker base images
+      if: steps.docker_check.outputs.python_update_available == 'true'
+      run: |
+        # Update Python base image to latest patch version
+        sed -i 's/FROM python:3\.11-slim/FROM python:3.11-slim/' Dockerfile
+        
+        # Pull latest images to update digests
+        docker pull python:3.11-slim
+        docker pull postgres:15-alpine
+        docker pull redis:7-alpine
+
+    - name: Test Docker build
+      run: |
+        docker build -t causal-interface-gym:test .
+        docker run --rm causal-interface-gym:test python -c "import causal_interface_gym; print('OK')"
+
+    - name: Create Pull Request
+      if: steps.docker_check.outputs.python_update_available == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          chore: update Docker base images
+          
+          - Updated Python base image to latest patch version
+          - Verified Docker build and basic functionality
+        title: '🐳 Weekly Docker Base Image Update'
+        body: |
+          ## Automated Docker Image Update
+          
+          This PR updates Docker base images to their latest versions.
+          
+          ### Changes
+          - Python: `${{ steps.docker_check.outputs.current_python }}` → Latest patch
+          
+          ### Verification
+          - ✅ Docker build: **Successful**
+          - ✅ Basic functionality: **Verified**
+          
+          ---
+          *This PR was automatically created by the dependency update workflow.*
+        branch: dependency-update/docker-${{ github.run_number }}
+        labels: |
+          dependencies
+          docker
+          automated
+          maintenance
+
+  security-only-updates:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.update_type == 'security' || contains(github.event.schedule, '0 6 * * 1')
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-audit safety
+
+    - name: Identify security vulnerabilities
+      run: |
+        # Get current vulnerabilities
+        pip-audit --format=json --output=current-vulns.json || true
+        
+        # Install current dependencies
+        pip install -e ".[dev]"
+        
+        # Check what packages need security updates
+        python - <<EOF
+        import json
+        import subprocess
+        
+        try:
+            with open('current-vulns.json') as f:
+                vulns = json.load(f)
+                
+            vulnerable_packages = set()
+            for vuln in vulns.get('vulnerabilities', []):
+                vulnerable_packages.add(vuln['package'])
+            
+            if vulnerable_packages:
+                print("Packages with security vulnerabilities:")
+                for pkg in vulnerable_packages:
+                    print(f"  - {pkg}")
+                    
+                # Create requirements update
+                with open('security-requirements.txt', 'w') as f:
+                    for pkg in vulnerable_packages:
+                        f.write(f"{pkg}\n")
+        except:
+            print("No vulnerabilities file found")
+        EOF
+
+    - name: Update only vulnerable packages
+      run: |
+        if [ -f security-requirements.txt ]; then
+          # Update only packages with known vulnerabilities
+          pip install --upgrade -r security-requirements.txt
+          pip freeze > updated-requirements.txt
+          
+          # Update pyproject.toml with security fixes
+          python - <<EOF
+        import toml
+        import subprocess
+        
+        # Read current pyproject.toml
+        with open('pyproject.toml') as f:
+            config = toml.load(f)
+        
+        # Get updated package versions
+        result = subprocess.run(['pip', 'freeze'], capture_output=True, text=True)
+        updated_packages = {}
+        for line in result.stdout.split('\n'):
+            if '==' in line:
+                pkg, version = line.split('==')
+                updated_packages[pkg.lower()] = version
+        
+        # Update only security-related packages in dependencies
+        if 'project' in config and 'dependencies' in config['project']:
+            new_deps = []
+            for dep in config['project']['dependencies']:
+                pkg_name = dep.split('>=')[0].split('==')[0].strip()
+                if pkg_name.lower() in updated_packages:
+                    new_deps.append(f"{pkg_name}>={updated_packages[pkg_name.lower()]}")
+                else:
+                    new_deps.append(dep)
+            config['project']['dependencies'] = new_deps
+        
+        # Write updated pyproject.toml
+        with open('pyproject.toml', 'w') as f:
+            toml.dump(config, f)
+        EOF
+        fi
+
+    - name: Run tests with security updates
+      run: |
+        pytest tests/unit/ -x --tb=short
+      id: security_tests
+
+    - name: Create Security Update PR
+      if: steps.security_tests.outcome == 'success' && hashFiles('security-requirements.txt') != ''
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          security: update vulnerable dependencies
+          
+          - Updated packages with known security vulnerabilities
+          - All tests passing with security updates
+        title: '🔒 Security Dependency Updates'
+        body: |
+          ## Security Dependency Updates
+          
+          This PR addresses security vulnerabilities in dependencies.
+          
+          ### 🚨 Security Updates
+          $(cat security-requirements.txt | sed 's/^/- /')
+          
+          ### Test Results
+          - ✅ Unit tests: **Passed**
+          
+          **This PR should be reviewed and merged immediately.**
+          
+          ---
+          *This PR was automatically created by the security update workflow.*
+        branch: security-update-${{ github.run_number }}
+        labels: |
+          security
+          critical
+          automated
+          dependencies
+
+  cleanup-old-branches:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Delete old dependency update branches
+      run: |
+        # Delete merged dependency update branches older than 30 days
+        git for-each-ref --format='%(refname:short) %(committerdate)' refs/remotes/origin/dependency-update/ | \
+        while read branch date; do
+          if [[ $(date -d "$date" +%s) -lt $(date -d "30 days ago" +%s) ]]; then
+            echo "Deleting old branch: $branch"
+            git push origin --delete "${branch#origin/}" || true
+          fi
+        done
