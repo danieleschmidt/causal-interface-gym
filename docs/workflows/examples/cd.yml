@@ -1,0 +1,311 @@
+# CD Pipeline for Causal Interface Gym
+# Save as: .github/workflows/cd.yml
+
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: production
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.causal-gym.org
+    steps:
+    - name: Deploy to staging
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: causal-gym-staging
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STAGING }}
+        images: ${{ needs.build-and-push.outputs.image-tag }}
+
+    - name: Run smoke tests
+      run: |
+        # Wait for deployment
+        sleep 60
+        
+        # Basic health check
+        curl -f https://staging.causal-gym.org/health || exit 1
+        
+        # API functionality test
+        curl -f -X POST https://staging.causal-gym.org/api/causal-inference \
+          -H "Content-Type: application/json" \
+          -d '{"dag": {"A": [], "B": ["A"]}, "intervention": {"A": 1}}' || exit 1
+
+    - name: Notify Slack
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,commit,author,took
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://causal-gym.org
+    steps:
+    - name: Deploy to production
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: causal-gym-production
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PRODUCTION }}
+        images: ${{ needs.build-and-push.outputs.image-tag }}
+
+    - name: Run comprehensive tests
+      run: |
+        # Wait for deployment
+        sleep 90
+        
+        # Health checks
+        curl -f https://causal-gym.org/health || exit 1
+        curl -f https://causal-gym.org/metrics || exit 1
+        
+        # API tests
+        python scripts/production_api_tests.py
+
+    - name: Update deployment status
+      if: always()
+      uses: deployments@v1
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: ${{ job.status }}
+        environment: production
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+  publish-package:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build package
+      run: python -m build
+
+    - name: Check package
+      run: twine check dist/*
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://upload.pypi.org/legacy/
+
+  update-documentation:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -e ".[docs]"
+
+    - name: Build documentation
+      run: |
+        cd docs
+        make html
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html
+        cname: docs.causal-gym.org
+
+  security-scan-production:
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Run OWASP ZAP scan
+      uses: zaproxy/action-full-scan@v0.4.0
+      with:
+        target: 'https://causal-gym.org'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+
+    - name: Upload ZAP results
+      uses: actions/upload-artifact@v3
+      with:
+        name: zap-results
+        path: report_html.html
+
+  notify-stakeholders:
+    runs-on: ubuntu-latest
+    needs: [deploy-production, publish-package, update-documentation]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Get release information
+      id: release
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const release = await github.rest.repos.getReleaseByTag({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag: context.ref.replace('refs/tags/', '')
+          });
+          return release.data;
+
+    - name: Send email notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Causal Interface Gym ${{ github.ref_name }} Released"
+        body: |
+          A new version of Causal Interface Gym has been released!
+          
+          Version: ${{ github.ref_name }}
+          
+          Changes:
+          ${{ fromJson(steps.release.outputs.result).body }}
+          
+          Links:
+          - Production: https://causal-gym.org
+          - Documentation: https://docs.causal-gym.org
+          - PyPI: https://pypi.org/project/causal-interface-gym/
+          
+          Happy experimenting!
+        to: stakeholders@causal-gym.org
+        from: noreply@causal-gym.org
+
+    - name: Post to Discord
+      uses: Ilshidur/action-discord@master
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      with:
+        args: |
+          🚀 **Causal Interface Gym ${{ github.ref_name }}** has been released!
+          
+          **What's New:**
+          ${{ fromJson(steps.release.outputs.result).name }}
+          
+          **Links:**
+          • [Try it now](https://causal-gym.org)
+          • [Documentation](https://docs.causal-gym.org)
+          • [PyPI Package](https://pypi.org/project/causal-interface-gym/)
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: [deploy-staging, deploy-production]
+    environment:
+      name: rollback
+    steps:
+    - name: Rollback staging
+      if: needs.deploy-staging.result == 'failure'
+      run: |
+        # Rollback staging deployment
+        echo "Rolling back staging deployment..."
+        # Implementation depends on your deployment platform
+
+    - name: Rollback production
+      if: needs.deploy-production.result == 'failure'
+      run: |
+        # Rollback production deployment
+        echo "Rolling back production deployment..."
+        # Implementation depends on your deployment platform
+
+    - name: Notify incident channel
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#incidents'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        text: |
+          🚨 **DEPLOYMENT FAILURE** 🚨
+          
+          Repository: ${{ github.repository }}
+          Commit: ${{ github.sha }}
+          Branch/Tag: ${{ github.ref }}
+          
+          Please investigate immediately.

@@ -1,0 +1,42 @@
+# Causal Interface Gym - Code Ownership
+
+# Global default ownership
+* @danieleschmidt
+
+# Core causal inference logic
+src/causal_interface_gym/core.py @danieleschmidt
+src/causal_interface_gym/metrics.py @danieleschmidt
+
+# Documentation
+docs/ @danieleschmidt
+*.md @danieleschmidt
+
+# Build and deployment configuration
+Dockerfile @danieleschmidt
+docker-compose*.yml @danieleschmidt
+pyproject.toml @danieleschmidt
+package.json @danieleschmidt
+
+# CI/CD and automation
+.github/ @danieleschmidt
+scripts/ @danieleschmidt
+
+# Testing infrastructure
+tests/ @danieleschmidt
+pytest.ini @danieleschmidt
+.pre-commit-config.yaml @danieleschmidt
+
+# Security and compliance
+SECURITY.md @danieleschmidt
+.bandit @danieleschmidt
+monitoring/ @danieleschmidt
+
+# Development environment
+.devcontainer/ @danieleschmidt
+.vscode/ @danieleschmidt
+.env.example @danieleschmidt
+
+# Architecture and design decisions
+docs/adr/ @danieleschmidt
+docs/ARCHITECTURE.md @danieleschmidt
+PROJECT_CHARTER.md @danieleschmidt

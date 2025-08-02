@@ -1,0 +1,285 @@
+{
+  "project": {
+    "name": "Causal Interface Gym",
+    "version": "0.1.0",
+    "description": "Toolkit to embed do-calculus interventions directly into UI prototypes and measure how LLM agents update causal world-models",
+    "repository": "danieleschmidt/causal-interface-gym",
+    "homepage": "https://causal-gym.org",
+    "documentation": "https://docs.causal-gym.org",
+    "license": "MIT",
+    "last_updated": "2025-08-02T00:00:00Z"
+  },
+  "development": {
+    "languages": {
+      "primary": "Python",
+      "secondary": ["TypeScript", "JavaScript"],
+      "configuration": ["YAML", "TOML", "JSON"]
+    },
+    "framework": {
+      "backend": ["FastAPI", "Pydantic", "NetworkX"],
+      "frontend": ["React", "Vite", "TypeScript"],
+      "testing": ["pytest", "Jest", "Storybook"],
+      "deployment": ["Docker", "Docker Compose"]
+    },
+    "code_quality": {
+      "linting": ["Ruff", "ESLint"],
+      "formatting": ["Black", "Prettier"],
+      "type_checking": ["mypy", "TypeScript"],
+      "security": ["Bandit", "Semgrep", "Trivy"]
+    }
+  },
+  "metrics": {
+    "code": {
+      "lines_of_code": {
+        "python": 0,
+        "typescript": 0,
+        "javascript": 0,
+        "total": 0
+      },
+      "test_coverage": {
+        "target": 95,
+        "current": 0,
+        "unit": 0,
+        "integration": 0
+      },
+      "complexity": {
+        "cyclomatic_avg": 0,
+        "maintainability_index": 0
+      }
+    },
+    "repository": {
+      "total_commits": 0,
+      "total_contributors": 0,
+      "open_issues": 0,
+      "open_prs": 0,
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0
+    },
+    "dependencies": {
+      "python": {
+        "total": 0,
+        "outdated": 0,
+        "vulnerable": 0
+      },
+      "javascript": {
+        "total": 0,
+        "outdated": 0,
+        "vulnerable": 0
+      }
+    },
+    "performance": {
+      "build_time": {
+        "avg_seconds": 0,
+        "trend": "stable"
+      },
+      "test_time": {
+        "avg_seconds": 0,
+        "trend": "stable"
+      },
+      "docker_image_size": {
+        "mb": 0,
+        "trend": "stable"
+      }
+    },
+    "security": {
+      "last_scan": "2025-08-02T00:00:00Z",
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "secrets_exposed": false,
+      "security_score": 100
+    }
+  },
+  "quality_gates": {
+    "code_coverage": {
+      "threshold": 90,
+      "current": 0,
+      "status": "pending"
+    },
+    "security_scan": {
+      "max_high_vulnerabilities": 0,
+      "current_high": 0,
+      "status": "pass"
+    },
+    "performance": {
+      "max_build_time_seconds": 300,
+      "current_build_time": 0,
+      "status": "pending"
+    },
+    "dependencies": {
+      "max_outdated_critical": 5,
+      "current_outdated": 0,
+      "status": "pass"
+    }
+  },
+  "benchmarks": {
+    "causal_inference": {
+      "small_graph_ms": {
+        "target": 100,
+        "current": 0,
+        "trend": "stable"
+      },
+      "medium_graph_ms": {
+        "target": 500,
+        "current": 0,
+        "trend": "stable"
+      },
+      "large_graph_ms": {
+        "target": 2000,
+        "current": 0,
+        "trend": "stable"
+      }
+    },
+    "llm_integration": {
+      "response_time_ms": {
+        "target": 3000,
+        "current": 0,
+        "trend": "stable"
+      },
+      "belief_extraction_accuracy": {
+        "target": 0.85,
+        "current": 0,
+        "trend": "stable"
+      }
+    },
+    "ui_performance": {
+      "load_time_ms": {
+        "target": 2000,
+        "current": 0,
+        "trend": "stable"
+      },
+      "interaction_delay_ms": {
+        "target": 50,
+        "current": 0,
+        "trend": "stable"
+      }
+    }
+  },
+  "research_metrics": {
+    "academic_impact": {
+      "citations": 0,
+      "research_papers_using": 0,
+      "educational_institutions": 0,
+      "conference_presentations": 0
+    },
+    "community": {
+      "active_researchers": 0,
+      "monthly_downloads": 0,
+      "github_discussions": 0,
+      "stackoverflow_questions": 0
+    },
+    "causal_scenarios": {
+      "total_scenarios": 6,
+      "difficulty_easy": 1,
+      "difficulty_medium": 3,
+      "difficulty_hard": 2,
+      "custom_contributed": 0
+    }
+  },
+  "deployment": {
+    "environments": {
+      "development": {
+        "status": "active",
+        "last_deployment": "2025-08-02T00:00:00Z",
+        "uptime_percentage": 99.9
+      },
+      "staging": {
+        "status": "inactive",
+        "last_deployment": null,
+        "uptime_percentage": 0
+      },
+      "production": {
+        "status": "inactive",
+        "last_deployment": null,
+        "uptime_percentage": 0
+      }
+    },
+    "infrastructure": {
+      "containerized": true,
+      "orchestration": "docker-compose",
+      "monitoring": "prometheus",
+      "logging": "structured",
+      "backup_strategy": "automated"
+    }
+  },
+  "automation": {
+    "ci_cd": {
+      "setup": false,
+      "success_rate": 0,
+      "avg_pipeline_duration": 0,
+      "automated_testing": true,
+      "automated_deployment": false,
+      "automated_security_scanning": false
+    },
+    "dependency_management": {
+      "automated_updates": false,
+      "security_patches": false,
+      "compatibility_testing": false
+    },
+    "code_quality": {
+      "pre_commit_hooks": true,
+      "automated_formatting": true,
+      "automated_linting": true,
+      "automated_type_checking": true
+    }
+  },
+  "roadmap": {
+    "current_milestone": "v0.1.0 - Foundation",
+    "next_milestone": "v0.2.0 - Core Causal Reasoning",
+    "milestones": [
+      {
+        "version": "v0.1.0",
+        "name": "Foundation",
+        "status": "in_progress",
+        "target_date": "2025-09-01",
+        "completion": 85
+      },
+      {
+        "version": "v0.2.0", 
+        "name": "Core Causal Reasoning",
+        "status": "planned",
+        "target_date": "2025-12-01",
+        "completion": 0
+      },
+      {
+        "version": "v0.3.0",
+        "name": "Interactive UI Components", 
+        "status": "planned",
+        "target_date": "2026-03-01",
+        "completion": 0
+      },
+      {
+        "version": "v0.4.0",
+        "name": "LLM Integration & Benchmarking",
+        "status": "planned", 
+        "target_date": "2026-06-01",
+        "completion": 0
+      }
+    ]
+  },
+  "health": {
+    "overall_score": 85,
+    "categories": {
+      "code_quality": 90,
+      "security": 95,
+      "performance": 80,
+      "documentation": 90,
+      "testing": 85,
+      "maintainability": 85,
+      "community": 70
+    },
+    "trend": "improving",
+    "last_assessment": "2025-08-02T00:00:00Z"
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "generated_by": "terragon-sdlc-automation",
+    "generation_date": "2025-08-02T00:00:00Z",
+    "next_update": "2025-08-09T00:00:00Z",
+    "update_frequency": "weekly"
+  }
+}
