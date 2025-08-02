@@ -38,7 +38,7 @@
     "vitest": "^1.0.4",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
-    "@storybook/react": "^7.6.4",
+    "@storybook/react": "^9.0.18",
     "@storybook/addon-essentials": "^7.6.4"
   },
   "engines": {
