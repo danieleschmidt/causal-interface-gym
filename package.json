@@ -5,16 +5,26 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "dev": "vite serve",
+    "dev": "vite serve --port 3000 --host 0.0.0.0",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
     "coverage": "vitest --coverage",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rimraf dist node_modules/.vite",
+    "analyze": "vite-bundle-analyzer",
+    "serve:dist": "serve -s dist -l 3000",
+    "docker:build": "docker build -t causal-interface-gym-ui .",
+    "docker:run": "docker run -p 3000:3000 causal-interface-gym-ui"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -22,7 +32,16 @@
     "d3": "^7.8.5",
     "plotly.js": "^3.0.3",
     "react-plotly.js": "^2.6.0",
-    "@types/d3": "^7.4.3"
+    "@types/d3": "^7.4.3",
+    "axios": "^1.6.0",
+    "react-router-dom": "^6.20.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.0",
+    "@mui/icons-material": "^5.15.0",
+    "react-hook-form": "^7.48.0",
+    "react-query": "^3.39.0",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -39,7 +58,18 @@
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "@storybook/react": "^9.0.18",
-    "@storybook/addon-essentials": "^8.6.14"
+    "@storybook/addon-essentials": "^8.6.14",
+    "prettier": "^3.1.0",
+    "@playwright/test": "^1.40.0",
+    "rimraf": "^5.0.0",
+    "serve": "^14.2.0",
+    "vite-bundle-analyzer": "^0.7.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "jsdom": "^23.0.0"
   },
   "engines": {
     "node": ">=18.0.0",
