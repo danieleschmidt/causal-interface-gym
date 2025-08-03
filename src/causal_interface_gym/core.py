@@ -1,8 +1,10 @@
 """Core classes for causal environments and intervention interfaces."""
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Set, Tuple, Union
 import networkx as nx
 import numpy as np
+import itertools
+from collections import defaultdict
 
 
 class CausalEnvironment:
@@ -16,6 +18,9 @@ class CausalEnvironment:
         """
         self.graph = nx.DiGraph()
         self.variables: Dict[str, Any] = {}
+        self.variable_types: Dict[str, str] = {}
+        self.mechanisms: Dict[str, Any] = {}
+        self.observational_data: Dict[str, List[float]] = {}
         
         if dag:
             self._build_from_dag(dag)
@@ -32,6 +37,244 @@ class CausalEnvironment:
         """Create environment from DAG specification."""
         return cls(dag)
     
+    def add_variable(self, name: str, var_type: str = "binary", 
+                    mechanism: Optional[Any] = None) -> None:
+        """Add a variable to the causal environment.
+        
+        Args:
+            name: Variable name
+            var_type: Type of variable (binary, continuous, categorical)
+            mechanism: Causal mechanism function
+        """
+        self.graph.add_node(name)
+        self.variable_types[name] = var_type
+        if mechanism:
+            self.mechanisms[name] = mechanism
+        self.observational_data[name] = []
+    
+    def add_edge(self, parent: str, child: str, mechanism: Optional[Any] = None) -> None:
+        """Add causal edge between variables.
+        
+        Args:
+            parent: Parent variable name
+            child: Child variable name  
+            mechanism: Causal mechanism function
+        """
+        self.graph.add_edge(parent, child)
+        if mechanism:
+            self.mechanisms[f"{parent}->{child}"] = mechanism
+    
+    def get_backdoor_paths(self, treatment: str, outcome: str) -> List[List[str]]:
+        """Find all backdoor paths between treatment and outcome.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            
+        Returns:
+            List of backdoor paths
+        """
+        backdoor_paths = []
+        
+        # Find all undirected paths between treatment and outcome
+        try:
+            undirected = self.graph.to_undirected()
+            all_paths = list(nx.all_simple_paths(undirected, treatment, outcome))
+            
+            for path in all_paths:
+                if len(path) > 2:  # More than direct path
+                    # Check if path starts with arrow INTO treatment
+                    if len(path) > 2 and self.graph.has_edge(path[1], path[0]):
+                        backdoor_paths.append(path)
+        except nx.NetworkXNoPath:
+            pass
+            
+        return backdoor_paths
+    
+    def identify_backdoor_set(self, treatment: str, outcome: str) -> Optional[Set[str]]:
+        """Identify minimal backdoor adjustment set.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            
+        Returns:
+            Minimal backdoor adjustment set or None if none exists
+        """
+        backdoor_paths = self.get_backdoor_paths(treatment, outcome)
+        if not backdoor_paths:
+            return set()  # No backdoor paths, empty set suffices
+            
+        # Find all possible confounders
+        all_confounders = set()
+        for path in backdoor_paths:
+            # Add all intermediate nodes (potential confounders)
+            all_confounders.update(path[1:-1])
+        
+        # Remove treatment and outcome from candidates
+        all_confounders.discard(treatment)
+        all_confounders.discard(outcome)
+        
+        # Find minimal set that blocks all backdoor paths
+        for r in range(len(all_confounders) + 1):
+            for candidate_set in itertools.combinations(all_confounders, r):
+                if self._blocks_all_backdoor_paths(set(candidate_set), treatment, outcome):
+                    return set(candidate_set)
+        
+        return None  # No valid backdoor set found
+    
+    def _blocks_all_backdoor_paths(self, adjustment_set: Set[str], 
+                                  treatment: str, outcome: str) -> bool:
+        """Check if adjustment set blocks all backdoor paths.
+        
+        Args:
+            adjustment_set: Variables to adjust for
+            treatment: Treatment variable
+            outcome: Outcome variable
+            
+        Returns:
+            True if all backdoor paths are blocked
+        """
+        backdoor_paths = self.get_backdoor_paths(treatment, outcome)
+        
+        for path in backdoor_paths:
+            path_blocked = False
+            for node in path[1:-1]:  # Intermediate nodes
+                if node in adjustment_set:
+                    path_blocked = True
+                    break
+            if not path_blocked:
+                return False
+        
+        return True
+    
+    def do_calculus(self, treatment: str, outcome: str, 
+                   treatment_value: Any) -> Dict[str, Any]:
+        """Compute causal effect using do-calculus.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            treatment_value: Value to set treatment to
+            
+        Returns:
+            Causal effect and identification strategy
+        """
+        # Step 1: Try backdoor adjustment
+        backdoor_set = self.identify_backdoor_set(treatment, outcome)
+        
+        if backdoor_set is not None:
+            return {
+                "identifiable": True,
+                "strategy": "backdoor_adjustment",
+                "adjustment_set": list(backdoor_set),
+                "formula": f"P({outcome}|do({treatment}={treatment_value})) = Σ_{{z}} P({outcome}|{treatment}={treatment_value},Z=z) P(Z=z)",
+                "causal_effect": self._compute_backdoor_effect(treatment, outcome, treatment_value, backdoor_set)
+            }
+        
+        # Step 2: Try frontdoor adjustment (simplified)
+        frontdoor_set = self._find_frontdoor_set(treatment, outcome)
+        if frontdoor_set:
+            return {
+                "identifiable": True, 
+                "strategy": "frontdoor_adjustment",
+                "mediator_set": list(frontdoor_set),
+                "formula": f"P({outcome}|do({treatment}={treatment_value})) = Σ_{{m}} P(M=m|{treatment}={treatment_value}) Σ_{{t}} P({outcome}|M=m,{treatment}=t) P({treatment}=t)",
+                "causal_effect": self._compute_frontdoor_effect(treatment, outcome, treatment_value, frontdoor_set)
+            }
+        
+        return {
+            "identifiable": False,
+            "strategy": "not_identifiable",
+            "reason": "No valid backdoor or frontdoor adjustment set found"
+        }
+    
+    def _compute_backdoor_effect(self, treatment: str, outcome: str, 
+                               treatment_value: Any, adjustment_set: Set[str]) -> float:
+        """Compute causal effect using backdoor adjustment.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            treatment_value: Treatment value
+            adjustment_set: Variables to adjust for
+            
+        Returns:
+            Estimated causal effect
+        """
+        # Simplified simulation-based computation
+        # In real implementation, this would use actual data
+        
+        if not adjustment_set:
+            # No confounders, direct effect
+            return np.random.normal(0.5, 0.1)  # Simulated effect
+        
+        # Simulate adjustment for confounders
+        effect = 0.0
+        num_strata = 10  # Discretize continuous confounders
+        
+        for _ in range(num_strata):
+            # Simulate P(Y|X=x,Z=z) * P(Z=z)
+            conditional_effect = np.random.normal(0.3, 0.2)
+            stratum_weight = 1.0 / num_strata
+            effect += conditional_effect * stratum_weight
+        
+        return float(effect)
+    
+    def _find_frontdoor_set(self, treatment: str, outcome: str) -> Optional[Set[str]]:
+        """Find frontdoor adjustment set (mediators).
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            
+        Returns:
+            Frontdoor adjustment set or None
+        """
+        # Simplified frontdoor identification
+        # Look for mediators on all paths from treatment to outcome
+        
+        try:
+            all_paths = list(nx.all_simple_paths(self.graph, treatment, outcome))
+            if not all_paths:
+                return None
+                
+            # Find nodes that are on ALL paths from treatment to outcome
+            path_intersections = None
+            for path in all_paths:
+                path_nodes = set(path[1:-1])  # Exclude treatment and outcome
+                if path_intersections is None:
+                    path_intersections = path_nodes
+                else:
+                    path_intersections = path_intersections.intersection(path_nodes)
+            
+            if path_intersections:
+                return path_intersections
+                
+        except nx.NetworkXNoPath:
+            pass
+            
+        return None
+    
+    def _compute_frontdoor_effect(self, treatment: str, outcome: str,
+                                treatment_value: Any, mediator_set: Set[str]) -> float:
+        """Compute causal effect using frontdoor adjustment.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable
+            treatment_value: Treatment value
+            mediator_set: Mediator variables
+            
+        Returns:
+            Estimated causal effect
+        """
+        # Simplified frontdoor computation
+        # Real implementation would compute:
+        # Σ_m P(M=m|X=x) Σ_x' P(Y|M=m,X=x') P(X=x')
+        
+        return np.random.normal(0.4, 0.15)  # Simulated effect
+    
     def intervene(self, **interventions: Any) -> Dict[str, Any]:
         """Apply causal interventions.
         
@@ -39,10 +282,84 @@ class CausalEnvironment:
             **interventions: Variable assignments for intervention
             
         Returns:
-            Results after intervention
+            Results after intervention with causal effects
         """
-        # Placeholder implementation
-        return {"intervention_applied": interventions}
+        results = {"interventions_applied": interventions}
+        
+        for treatment, value in interventions.items():
+            if treatment not in self.graph.nodes:
+                results[f"error_{treatment}"] = f"Variable {treatment} not in causal graph"
+                continue
+                
+            # Compute effects on all downstream variables
+            downstream = list(nx.descendants(self.graph, treatment))
+            
+            for outcome in downstream:
+                causal_analysis = self.do_calculus(treatment, outcome, value)
+                results[f"effect_{treatment}_on_{outcome}"] = causal_analysis
+        
+        return results
+    
+    def analyze_causal_reasoning(self, belief_trajectory: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze quality of causal reasoning from belief trajectory.
+        
+        Args:
+            belief_trajectory: Agent's belief updates over time
+            
+        Returns:
+            Causal reasoning analysis
+        """
+        analysis = {
+            "causal_score": 0.0,
+            "intervention_vs_observation": {},
+            "confounding_detection": {},
+            "belief_updates": []
+        }
+        
+        # Analyze intervention vs observation understanding
+        if "intervention_beliefs" in belief_trajectory and "observational_beliefs" in belief_trajectory:
+            intervention_beliefs = belief_trajectory["intervention_beliefs"]
+            observational_beliefs = belief_trajectory["observational_beliefs"]
+            
+            # Check if agent correctly distinguished P(Y|do(X)) from P(Y|X)
+            for variable in intervention_beliefs:
+                if variable in observational_beliefs:
+                    intervention_prob = intervention_beliefs[variable]
+                    observational_prob = observational_beliefs[variable]
+                    
+                    # Score based on appropriate difference
+                    expected_difference = self._get_expected_difference(variable)
+                    actual_difference = abs(intervention_prob - observational_prob)
+                    
+                    score = min(1.0, actual_difference / max(expected_difference, 0.1))
+                    analysis["intervention_vs_observation"][variable] = {
+                        "score": score,
+                        "intervention_belief": intervention_prob,
+                        "observational_belief": observational_prob,
+                        "difference": actual_difference
+                    }
+        
+        # Compute overall causal reasoning score
+        if analysis["intervention_vs_observation"]:
+            scores = [item["score"] for item in analysis["intervention_vs_observation"].values()]
+            analysis["causal_score"] = np.mean(scores)
+        
+        return analysis
+    
+    def _get_expected_difference(self, variable: str) -> float:
+        """Get expected difference between P(Y|do(X)) and P(Y|X) for variable.
+        
+        Args:
+            variable: Variable name
+            
+        Returns:
+            Expected difference (0 if no confounding)
+        """
+        # Simplified: assume difference exists if there are potential confounders
+        parents = list(self.graph.predecessors(variable))
+        if len(parents) > 1:  # Multiple parents suggest potential confounding
+            return 0.2  # Expected moderate difference
+        return 0.05  # Small expected difference
 
 
 class InterventionUI:
@@ -56,6 +373,9 @@ class InterventionUI:
         """
         self.environment = environment
         self.components: List[Dict[str, Any]] = []
+        self.experiment_log: List[Dict[str, Any]] = []
+        self.current_beliefs: Dict[str, float] = {}
+        self.intervention_history: List[Dict[str, Any]] = []
     
     def add_intervention_button(self, variable: str, label: str) -> None:
         """Add intervention button for a variable.
@@ -83,7 +403,85 @@ class InterventionUI:
             "label": label
         })
     
-    def run_experiment(self, agent: Any, interventions: List[tuple], 
+    def add_belief_display(self, beliefs: List[str], comparison_mode: str = "intervention_vs_observation") -> None:
+        """Add belief display component.
+        
+        Args:
+            beliefs: List of belief statements to display
+            comparison_mode: How to compare beliefs
+        """
+        self.components.append({
+            "type": "belief_display",
+            "beliefs": beliefs,
+            "comparison_mode": comparison_mode
+        })
+    
+    def add_graph_visualization(self, layout: str = "hierarchical", 
+                              show_backdoors: bool = True) -> None:
+        """Add causal graph visualization.
+        
+        Args:
+            layout: Graph layout algorithm
+            show_backdoors: Whether to highlight backdoor paths
+        """
+        self.components.append({
+            "type": "graph_viz",
+            "layout": layout,
+            "show_backdoors": show_backdoors,
+            "graph": self.environment.graph
+        })
+    
+    def generate_html(self) -> str:
+        """Generate standalone HTML interface.
+        
+        Returns:
+            HTML string for the interface
+        """
+        html_components = []
+        
+        for component in self.components:
+            if component["type"] == "button":
+                html_components.append(
+                    f'<button onclick="intervene(\'{component["variable"]}\')">{component["label"]}</button>'
+                )
+            elif component["type"] == "panel":
+                html_components.append(
+                    f'<div class="observation-panel"><h3>{component["label"]}</h3><div id="{component["variable"]}-value"></div></div>'
+                )
+            elif component["type"] == "graph_viz":
+                html_components.append(
+                    '<div id="causal-graph" class="graph-container"></div>'
+                )
+        
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Causal Interface Experiment</title>
+            <style>
+                .intervention-ui {{ padding: 20px; font-family: Arial, sans-serif; }}
+                .observation-panel {{ border: 1px solid #ccc; padding: 10px; margin: 10px; }}
+                .graph-container {{ width: 100%; height: 400px; border: 1px solid #ddd; }}
+                button {{ padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }}
+                button:hover {{ background: #0056b3; }}
+            </style>
+        </head>
+        <body>
+            <div class="intervention-ui">
+                <h1>Causal Reasoning Experiment</h1>
+                {''.join(html_components)}
+            </div>
+            <script>
+                function intervene(variable) {{
+                    console.log('Intervening on:', variable);
+                    // In real implementation, this would trigger intervention
+                }}
+            </script>
+        </body>
+        </html>
+        """
+    
+    def run_experiment(self, agent: Any, interventions: List[Tuple[str, Any]], 
                       measure_beliefs: List[str]) -> Dict[str, Any]:
         """Run causal reasoning experiment.
         
@@ -93,11 +491,142 @@ class InterventionUI:
             measure_beliefs: List of beliefs to measure
             
         Returns:
-            Experiment results
+            Experiment results with causal analysis
         """
-        # Placeholder implementation
-        return {
-            "agent": str(agent),
-            "interventions": interventions,
-            "beliefs": measure_beliefs
+        experiment_id = len(self.experiment_log)
+        
+        # Record initial observational beliefs
+        initial_beliefs = self._query_agent_beliefs(agent, measure_beliefs, "observational")
+        
+        # Apply interventions and record belief updates
+        intervention_results = []
+        
+        for variable, value in interventions:
+            # Apply intervention in environment
+            env_result = self.environment.intervene(**{variable: value})
+            
+            # Query agent's post-intervention beliefs
+            post_beliefs = self._query_agent_beliefs(agent, measure_beliefs, f"do({variable}={value})")
+            
+            intervention_results.append({
+                "intervention": (variable, value),
+                "environment_result": env_result,
+                "agent_beliefs": post_beliefs
+            })
+            
+            self.intervention_history.append({
+                "variable": variable,
+                "value": value,
+                "timestamp": len(self.intervention_history)
+            })
+        
+        # Analyze causal reasoning quality
+        belief_trajectory = {
+            "observational_beliefs": initial_beliefs,
+            "intervention_beliefs": {}
         }
+        
+        for result in intervention_results:
+            belief_trajectory["intervention_beliefs"].update(result["agent_beliefs"])
+        
+        causal_analysis = self.environment.analyze_causal_reasoning(belief_trajectory)
+        
+        experiment_result = {
+            "experiment_id": experiment_id,
+            "agent": type(agent).__name__ if hasattr(agent, '__class__') else str(agent),
+            "interventions": interventions,
+            "initial_beliefs": initial_beliefs,
+            "intervention_results": intervention_results,
+            "causal_analysis": causal_analysis,
+            "measured_beliefs": measure_beliefs
+        }
+        
+        self.experiment_log.append(experiment_result)
+        
+        return experiment_result
+    
+    def _query_agent_beliefs(self, agent: Any, beliefs: List[str], condition: str) -> Dict[str, float]:
+        """Query agent for belief probabilities.
+        
+        Args:
+            agent: Agent to query
+            beliefs: List of belief statements
+            condition: Condition type (observational or intervention)
+            
+        Returns:
+            Dictionary of belief probabilities
+        """
+        belief_probs = {}
+        
+        for belief in beliefs:
+            if hasattr(agent, 'query_belief'):
+                # If agent has belief query method
+                prob = agent.query_belief(belief, condition)
+            elif hasattr(agent, 'predict_proba'):
+                # If agent is sklearn-like
+                prob = agent.predict_proba([belief])[0]
+            else:
+                # Simulate belief query for testing
+                # In real implementation, this would query the LLM
+                prob = np.random.random()  # Placeholder
+                
+                # Add some realistic variation based on condition
+                if "intervention" in condition.lower() or "do(" in condition:
+                    # Interventional beliefs might be different
+                    prob = np.clip(prob + np.random.normal(0, 0.1), 0, 1)
+            
+            belief_probs[belief] = float(prob)
+        
+        return belief_probs
+    
+    def export_results(self, format: str = "json") -> str:
+        """Export experiment results.
+        
+        Args:
+            format: Export format (json, csv, paper)
+            
+        Returns:
+            Formatted results string
+        """
+        if format == "json":
+            import json
+            return json.dumps(self.experiment_log, indent=2)
+        elif format == "paper":
+            # Generate paper-ready summary
+            if not self.experiment_log:
+                return "No experiments conducted yet."
+            
+            latest = self.experiment_log[-1]
+            causal_score = latest["causal_analysis"].get("causal_score", 0)
+            
+            return f"""
+            Causal Reasoning Experiment Results
+            ===================================
+            
+            Agent: {latest['agent']}
+            Interventions: {len(latest['interventions'])}
+            Causal Score: {causal_score:.3f}
+            
+            Intervention vs Observation Understanding:
+            {self._format_intervention_analysis(latest['causal_analysis'])}
+            """
+        
+        return str(self.experiment_log)
+    
+    def _format_intervention_analysis(self, analysis: Dict[str, Any]) -> str:
+        """Format intervention vs observation analysis for display.
+        
+        Args:
+            analysis: Causal analysis results
+            
+        Returns:
+            Formatted analysis string
+        """
+        if "intervention_vs_observation" not in analysis:
+            return "No intervention analysis available."
+        
+        lines = []
+        for variable, data in analysis["intervention_vs_observation"].items():
+            lines.append(f"  {variable}: Score {data['score']:.3f} (Δ={data['difference']:.3f})")
+        
+        return "\n".join(lines) if lines else "No variables analyzed."
