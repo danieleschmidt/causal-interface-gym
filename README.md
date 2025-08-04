@@ -440,9 +440,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ```bibtex
 @software{causal_interface_gym,
   title={Causal Interface Gym: Interactive Environments for LLM Causal Reasoning},
-  author={Your Name},
+  author={Daniel Schmidt},
   year={2025},
-  url={https://github.com/yourusername/causal-interface-gym}
+  url={https://github.com/danieleschmidt/causal-interface-gym}
 }
 
 @article{causallm2025,
