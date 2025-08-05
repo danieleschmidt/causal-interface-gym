@@ -63,7 +63,7 @@
     "@playwright/test": "^1.40.0",
     "rimraf": "^5.0.0",
     "serve": "^14.2.0",
-    "vite-bundle-analyzer": "^0.7.0",
+    "vite-bundle-analyzer": "^1.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.0",
     "@testing-library/react": "^14.1.0",
