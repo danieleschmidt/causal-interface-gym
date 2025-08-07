@@ -25,10 +25,15 @@ class TestCausalEnvironment:
     
     def test_intervention(self):
         """Test intervention functionality."""
-        env = CausalEnvironment()
+        dag = {
+            "rain": [],
+            "sprinkler": ["rain"],
+            "wet_grass": ["rain", "sprinkler"]
+        }
+        env = CausalEnvironment.from_dag(dag)
         result = env.intervene(sprinkler=True)
-        assert "intervention_applied" in result
-        assert result["intervention_applied"]["sprinkler"] is True
+        assert "interventions_applied" in result
+        assert result["interventions_applied"]["sprinkler"] is True
 
 
 class TestInterventionUI:
@@ -55,7 +60,12 @@ class TestInterventionUI:
     
     def test_run_experiment(self):
         """Test experiment execution."""
-        env = CausalEnvironment()
+        dag = {
+            "rain": [],
+            "sprinkler": ["rain"],
+            "wet_grass": ["rain", "sprinkler"]
+        }
+        env = CausalEnvironment.from_dag(dag)
         ui = InterventionUI(env)
         
         result = ui.run_experiment(
@@ -66,4 +76,4 @@ class TestInterventionUI:
         
         assert "agent" in result
         assert "interventions" in result
-        assert "beliefs" in result
+        assert "measured_beliefs" in result

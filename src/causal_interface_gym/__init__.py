@@ -13,6 +13,7 @@ from .database import (
     InterventionRecord,
     ExperimentRepository,
     BeliefRepository,
+    InterventionRepository,
     GraphRepository,
     CacheManager,
 )
@@ -42,6 +43,7 @@ __all__ = [
     "InterventionRecord",
     "ExperimentRepository",
     "BeliefRepository",
+    "InterventionRepository",
     "GraphRepository",
     "CacheManager",
     "LLMProvider",

@@ -4,7 +4,10 @@ from typing import Dict, List, Any, Optional, Set, Tuple, Union
 import networkx as nx
 import numpy as np
 import itertools
+import logging
 from collections import defaultdict
+
+logger = logging.getLogger(__name__)
 
 
 class CausalEnvironment:
@@ -45,7 +48,22 @@ class CausalEnvironment:
             name: Variable name
             var_type: Type of variable (binary, continuous, categorical)
             mechanism: Causal mechanism function
+            
+        Raises:
+            ValueError: If name is empty or var_type is invalid
+            TypeError: If name is not a string
         """
+        if not isinstance(name, str):
+            raise TypeError(f"Variable name must be string, got {type(name)}")
+        if not name or not name.strip():
+            raise ValueError("Variable name cannot be empty")
+        if var_type not in ["binary", "continuous", "categorical"]:
+            raise ValueError(f"Invalid variable type: {var_type}. Must be one of: binary, continuous, categorical")
+        
+        name = name.strip()
+        if name in self.graph.nodes():
+            logger.warning(f"Variable '{name}' already exists in graph")
+        
         self.graph.add_node(name)
         self.variable_types[name] = var_type
         if mechanism:
@@ -59,7 +77,28 @@ class CausalEnvironment:
             parent: Parent variable name
             child: Child variable name  
             mechanism: Causal mechanism function
+            
+        Raises:
+            ValueError: If parent or child variables don't exist or are the same
+            TypeError: If parent or child are not strings
         """
+        if not isinstance(parent, str) or not isinstance(child, str):
+            raise TypeError("Parent and child must be strings")
+        if not parent.strip() or not child.strip():
+            raise ValueError("Parent and child names cannot be empty")
+        if parent.strip() == child.strip():
+            raise ValueError("Cannot add self-loop: parent and child are the same")
+        
+        parent, child = parent.strip(), child.strip()
+        
+        if parent not in self.graph.nodes():
+            raise ValueError(f"Parent variable '{parent}' not found in graph. Add it first with add_variable()")
+        if child not in self.graph.nodes():
+            raise ValueError(f"Child variable '{child}' not found in graph. Add it first with add_variable()")
+        
+        if self.graph.has_edge(parent, child):
+            logger.warning(f"Edge '{parent}' -> '{child}' already exists")
+        
         self.graph.add_edge(parent, child)
         if mechanism:
             self.mechanisms[f"{parent}->{child}"] = mechanism
@@ -73,7 +112,25 @@ class CausalEnvironment:
             
         Returns:
             List of backdoor paths
+            
+        Raises:
+            ValueError: If treatment or outcome variables don't exist
+            TypeError: If treatment or outcome are not strings
         """
+        if not isinstance(treatment, str) or not isinstance(outcome, str):
+            raise TypeError("Treatment and outcome must be strings")
+        if not treatment.strip() or not outcome.strip():
+            raise ValueError("Treatment and outcome names cannot be empty")
+            
+        treatment, outcome = treatment.strip(), outcome.strip()
+        
+        if treatment not in self.graph.nodes():
+            raise ValueError(f"Treatment variable '{treatment}' not found in graph")
+        if outcome not in self.graph.nodes():
+            raise ValueError(f"Outcome variable '{outcome}' not found in graph")
+        if treatment == outcome:
+            raise ValueError("Treatment and outcome cannot be the same variable")
+        
         backdoor_paths = []
         
         # Find all undirected paths between treatment and outcome
@@ -87,7 +144,10 @@ class CausalEnvironment:
                     if len(path) > 2 and self.graph.has_edge(path[1], path[0]):
                         backdoor_paths.append(path)
         except nx.NetworkXNoPath:
-            pass
+            logger.debug(f"No paths found between {treatment} and {outcome}")
+        except Exception as e:
+            logger.error(f"Error finding backdoor paths: {e}")
+            raise ValueError(f"Failed to find backdoor paths: {e}")
             
         return backdoor_paths
     
@@ -283,20 +343,54 @@ class CausalEnvironment:
             
         Returns:
             Results after intervention with causal effects
+            
+        Raises:
+            ValueError: If no interventions provided or invalid values
+            TypeError: If intervention values are invalid types
         """
+        if not interventions:
+            raise ValueError("At least one intervention must be provided")
+        
         results = {"interventions_applied": interventions}
         
         for treatment, value in interventions.items():
-            if treatment not in self.graph.nodes:
-                results[f"error_{treatment}"] = f"Variable {treatment} not in causal graph"
-                continue
-                
-            # Compute effects on all downstream variables
-            downstream = list(nx.descendants(self.graph, treatment))
+            if not isinstance(treatment, str):
+                raise TypeError(f"Treatment variable name must be string, got {type(treatment)}")
             
-            for outcome in downstream:
-                causal_analysis = self.do_calculus(treatment, outcome, value)
-                results[f"effect_{treatment}_on_{outcome}"] = causal_analysis
+            treatment = treatment.strip()
+            if not treatment:
+                raise ValueError("Treatment variable name cannot be empty")
+                
+            if treatment not in self.graph.nodes:
+                error_msg = f"Variable {treatment} not in causal graph"
+                results[f"error_{treatment}"] = error_msg
+                logger.error(error_msg)
+                continue
+            
+            # Validate intervention value based on variable type
+            var_type = self.variable_types.get(treatment, "binary")
+            if var_type == "binary" and value not in [True, False, 0, 1]:
+                logger.warning(f"Binary variable '{treatment}' got non-binary value: {value}")
+            elif var_type == "continuous" and not isinstance(value, (int, float)):
+                logger.warning(f"Continuous variable '{treatment}' got non-numeric value: {value}")
+                
+            try:
+                # Compute effects on all downstream variables
+                downstream = list(nx.descendants(self.graph, treatment))
+                
+                for outcome in downstream:
+                    try:
+                        causal_analysis = self.do_calculus(treatment, outcome, value)
+                        results[f"effect_{treatment}_on_{outcome}"] = causal_analysis
+                    except Exception as e:
+                        error_msg = f"Failed to compute causal effect {treatment} -> {outcome}: {e}"
+                        results[f"error_{treatment}_on_{outcome}"] = error_msg
+                        logger.error(error_msg)
+                        
+            except Exception as e:
+                error_msg = f"Failed to compute downstream effects for {treatment}: {e}"
+                results[f"error_{treatment}"] = error_msg
+                logger.error(error_msg)
         
         return results
     
@@ -346,20 +440,41 @@ class CausalEnvironment:
         
         return analysis
     
-    def _get_expected_difference(self, variable: str) -> float:
+    def _get_expected_difference(self, belief_expression: str) -> float:
         """Get expected difference between P(Y|do(X)) and P(Y|X) for variable.
         
         Args:
-            variable: Variable name
+            belief_expression: Belief expression like "P(wet_grass|do(sprinkler=on))"
             
         Returns:
             Expected difference (0 if no confounding)
         """
+        # Extract variable name from belief expression
+        variable = self._extract_variable_from_belief(belief_expression)
+        
         # Simplified: assume difference exists if there are potential confounders
-        parents = list(self.graph.predecessors(variable))
-        if len(parents) > 1:  # Multiple parents suggest potential confounding
-            return 0.2  # Expected moderate difference
+        if variable in self.graph.nodes():
+            parents = list(self.graph.predecessors(variable))
+            if len(parents) > 1:  # Multiple parents suggest potential confounding
+                return 0.2  # Expected moderate difference
         return 0.05  # Small expected difference
+    
+    def _extract_variable_from_belief(self, belief_expression: str) -> str:
+        """Extract main variable from belief expression.
+        
+        Args:
+            belief_expression: Expression like "P(wet_grass|do(sprinkler=on))"
+            
+        Returns:
+            Variable name like "wet_grass"
+        """
+        import re
+        # Match P(variable|...) or P(variable)
+        match = re.match(r'P\(([^|,)]+)', belief_expression)
+        if match:
+            return match.group(1).strip()
+        # Fallback: return the expression as-is
+        return belief_expression
 
 
 class InterventionUI:
@@ -492,33 +607,71 @@ class InterventionUI:
             
         Returns:
             Experiment results with causal analysis
+            
+        Raises:
+            ValueError: If inputs are invalid
+            TypeError: If inputs have wrong types
         """
+        if agent is None:
+            raise ValueError("Agent cannot be None")
+        if not isinstance(interventions, list):
+            raise TypeError("Interventions must be a list")
+        if not isinstance(measure_beliefs, list):
+            raise TypeError("Measure beliefs must be a list")
+        if not interventions:
+            raise ValueError("At least one intervention must be provided")
+        if not measure_beliefs:
+            raise ValueError("At least one belief must be measured")
+        
+        # Validate interventions format
+        for i, intervention in enumerate(interventions):
+            if not isinstance(intervention, (tuple, list)) or len(intervention) != 2:
+                raise ValueError(f"Intervention {i} must be a tuple/list of (variable, value)")
+            variable, value = intervention
+            if not isinstance(variable, str) or not variable.strip():
+                raise ValueError(f"Intervention {i} variable must be a non-empty string")
+        
         experiment_id = len(self.experiment_log)
+        logger.info(f"Starting experiment {experiment_id} with agent {type(agent).__name__}")
         
-        # Record initial observational beliefs
-        initial_beliefs = self._query_agent_beliefs(agent, measure_beliefs, "observational")
-        
-        # Apply interventions and record belief updates
-        intervention_results = []
-        
-        for variable, value in interventions:
-            # Apply intervention in environment
-            env_result = self.environment.intervene(**{variable: value})
+        try:
+            # Record initial observational beliefs
+            initial_beliefs = self._query_agent_beliefs(agent, measure_beliefs, "observational")
             
-            # Query agent's post-intervention beliefs
-            post_beliefs = self._query_agent_beliefs(agent, measure_beliefs, f"do({variable}={value})")
+            # Apply interventions and record belief updates
+            intervention_results = []
             
-            intervention_results.append({
-                "intervention": (variable, value),
-                "environment_result": env_result,
-                "agent_beliefs": post_beliefs
-            })
+            for variable, value in interventions:
+                try:
+                    # Apply intervention in environment
+                    env_result = self.environment.intervene(**{variable: value})
+                    
+                    # Query agent's post-intervention beliefs
+                    post_beliefs = self._query_agent_beliefs(agent, measure_beliefs, f"do({variable}={value})")
+                    
+                    intervention_results.append({
+                        "intervention": (variable, value),
+                        "environment_result": env_result,
+                        "agent_beliefs": post_beliefs
+                    })
+                    
+                    self.intervention_history.append({
+                        "variable": variable,
+                        "value": value,
+                        "timestamp": len(self.intervention_history)
+                    })
+                    
+                except Exception as e:
+                    error_msg = f"Failed to apply intervention ({variable}, {value}): {e}"
+                    logger.error(error_msg)
+                    intervention_results.append({
+                        "intervention": (variable, value),
+                        "error": error_msg
+                    })
             
-            self.intervention_history.append({
-                "variable": variable,
-                "value": value,
-                "timestamp": len(self.intervention_history)
-            })
+        except Exception as e:
+            logger.error(f"Experiment {experiment_id} failed: {e}")
+            raise ValueError(f"Experiment failed: {e}")
         
         # Analyze causal reasoning quality
         belief_trajectory = {

@@ -296,9 +296,9 @@ class ResponseParser:
         # Try to find numbered or bulleted sections
         for i, section in enumerate(expected_sections, 1):
             patterns = [
-                f'{i}\.\s*{section}[:\.]?\s*([^\n]*(?:\n(?!\d+\.|[A-Za-z]+:)[^\n]*)*)',
-                f'{section}[:\.]?\s*([^\n]*(?:\n(?!\d+\.|[A-Za-z]+:)[^\n]*)*)',
-                f'\*\*{section}\*\*[:\.]?\s*([^\n]*(?:\n(?!\*\*)[^\n]*)*)',
+                rf'{i}\.\s*{section}[:\.]?\s*([^\n]*(?:\n(?!\d+\.|[A-Za-z]+:)[^\n]*)*)',
+                rf'{section}[:\.]?\s*([^\n]*(?:\n(?!\d+\.|[A-Za-z]+:)[^\n]*)*)',
+                rf'\*\*{section}\*\*[:\.]?\s*([^\n]*(?:\n(?!\*\*)[^\n]*)*)',
             ]
             
             for pattern in patterns:
