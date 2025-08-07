@@ -58,7 +58,10 @@ def main():
     
     print(f"Experiment completed for {result['agent']}")
     print(f"Applied interventions: {result['interventions']}")
-    print(f"Measured beliefs: {result['beliefs']}")
+    print(f"Measured beliefs: {result['measured_beliefs']}")
+    print(f"Initial beliefs: {result['initial_beliefs']}")
+    if 'causal_analysis' in result and 'causal_score' in result['causal_analysis']:
+        print(f"Causal reasoning score: {result['causal_analysis']['causal_score']:.3f}")
     
     # Apply intervention to environment
     intervention_result = env.intervene(sprinkler=True)

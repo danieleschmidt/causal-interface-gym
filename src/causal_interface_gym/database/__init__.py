@@ -10,6 +10,7 @@ from .models import (
 from .repositories import (
     ExperimentRepository,
     BeliefRepository,
+    InterventionRepository,
     GraphRepository,
 )
 from .cache import CacheManager
@@ -22,6 +23,7 @@ __all__ = [
     "InterventionRecord",
     "ExperimentRepository",
     "BeliefRepository",
+    "InterventionRepository",
     "GraphRepository",
     "CacheManager",
 ]
