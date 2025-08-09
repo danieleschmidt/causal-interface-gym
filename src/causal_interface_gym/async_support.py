@@ -5,10 +5,31 @@ import time
 import logging
 from typing import Any, Dict, List, Optional, Callable, Awaitable, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import aiohttp
-import aiofiles
 from dataclasses import dataclass
 import json
+import weakref
+from functools import wraps
+
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
+    aiohttp = None
+
+try:
+    import aiofiles
+    AIOFILES_AVAILABLE = True
+except ImportError:
+    AIOFILES_AVAILABLE = False
+    aiofiles = None
+
+try:
+    import aioredis
+    AIOREDIS_AVAILABLE = True
+except ImportError:
+    AIOREDIS_AVAILABLE = False
+    aioredis = None
 
 logger = logging.getLogger(__name__)
 
@@ -224,12 +245,13 @@ class AsyncLLMClient:
     
     async def __aenter__(self):
         """Async context manager entry."""
-        self.session = aiohttp.ClientSession()
+        if AIOHTTP_AVAILABLE:
+            self.session = aiohttp.ClientSession()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
-        if self.session:
+        if self.session and AIOHTTP_AVAILABLE:
             await self.session.close()
     
     async def query_belief_async(self, belief: str, condition: str = "observational") -> float:
@@ -293,17 +315,20 @@ class AsyncCacheManager:
         self.redis_url = redis_url
         self.redis_pool = None
         
-        if redis_url:
-            import aioredis
+        if redis_url and AIOREDIS_AVAILABLE:
             self.redis_pool = aioredis.ConnectionPool.from_url(redis_url)
+        elif redis_url and not AIOREDIS_AVAILABLE:
+            logger.warning("Redis URL provided but aioredis not available")
     
     async def get(self, key: str) -> Optional[Any]:
         """Get item from cache asynchronously."""
         if not self.redis_pool:
             return None
         
+        if not AIOREDIS_AVAILABLE:
+            return None
+        
         try:
-            import aioredis
             redis = aioredis.Redis(connection_pool=self.redis_pool)
             data = await redis.get(key)
             
@@ -322,8 +347,10 @@ class AsyncCacheManager:
         if not self.redis_pool:
             return
         
+        if not AIOREDIS_AVAILABLE:
+            return
+        
         try:
-            import aioredis
             import pickle
             
             redis = aioredis.Redis(connection_pool=self.redis_pool)
@@ -338,8 +365,10 @@ class AsyncCacheManager:
         if not self.redis_pool:
             return
         
+        if not AIOREDIS_AVAILABLE:
+            return
+        
         try:
-            import aioredis
             redis = aioredis.Redis(connection_pool=self.redis_pool)
             await redis.delete(key)
             
@@ -472,9 +501,16 @@ async def run_concurrent_experiments(experiments: List[Dict[str, Any]]) -> List[
     return await default_async_experiment_manager.run_batch_experiments(experiments)
 
 
-def async_cached(cache_manager: AsyncCacheManager, ttl: int = 3600):
-    """Decorator for async caching."""
+def async_cached(cache_manager: AsyncCacheManager, ttl: int = 3600, compress: bool = False):
+    """Decorator for async caching with optional compression.
+    
+    Args:
+        cache_manager: Async cache manager
+        ttl: Time to live in seconds
+        compress: Whether to compress cached values
+    """
     def decorator(func):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             # Generate cache key
             import hashlib
@@ -482,26 +518,224 @@ def async_cached(cache_manager: AsyncCacheManager, ttl: int = 3600):
             
             key_data = {
                 'func': func.__name__,
+                'module': func.__module__,
                 'args': str(args),
                 'kwargs': json.dumps(kwargs, sort_keys=True, default=str)
             }
-            cache_key = hashlib.md5(json.dumps(key_data).encode()).hexdigest()
+            cache_key_raw = json.dumps(key_data, sort_keys=True)
+            cache_key = f"async_cache:{hashlib.md5(cache_key_raw.encode()).hexdigest()}"
             
             # Try cache first
             cached_result = await cache_manager.get(cache_key)
             if cached_result is not None:
-                return cached_result
+                # Decompress if needed
+                if compress and isinstance(cached_result, bytes):
+                    try:
+                        import gzip
+                        import pickle
+                        decompressed = gzip.decompress(cached_result)
+                        cached_result = pickle.loads(decompressed)
+                    except Exception as e:
+                        logger.warning(f"Failed to decompress cached result: {e}")
+                        # Fall through to execute function
+                        cached_result = None
+                
+                if cached_result is not None:
+                    logger.debug(f"Cache hit for {func.__name__}")
+                    return cached_result
+            
+            logger.debug(f"Cache miss for {func.__name__}, executing function")
             
             # Execute function
             if asyncio.iscoroutinefunction(func):
                 result = await func(*args, **kwargs)
             else:
-                result = func(*args, **kwargs)
+                loop = asyncio.get_event_loop()
+                with ThreadPoolExecutor() as executor:
+                    result = await loop.run_in_executor(executor, func, *args)
             
-            # Cache result
-            await cache_manager.set(cache_key, result, ttl)
+            # Cache result with optional compression
+            cache_value = result
+            if compress:
+                try:
+                    import gzip
+                    import pickle
+                    pickled = pickle.dumps(result)
+                    cache_value = gzip.compress(pickled)
+                    logger.debug(f"Compressed cache value from {len(pickled)} to {len(cache_value)} bytes")
+                except Exception as e:
+                    logger.warning(f"Failed to compress cache value: {e}")
+                    # Store uncompressed
+            
+            await cache_manager.set(cache_key, cache_value, ttl)
             
             return result
+        
+        return wrapper
+    return decorator
+
+
+class AsyncBulkOperationManager:
+    """Manage bulk operations asynchronously for better performance."""
+    
+    def __init__(self, batch_size: int = 100, flush_interval: float = 1.0):
+        """Initialize bulk operation manager.
+        
+        Args:
+            batch_size: Maximum batch size before auto-flush
+            flush_interval: Auto-flush interval in seconds
+        """
+        self.batch_size = batch_size
+        self.flush_interval = flush_interval
+        self.pending_operations: Dict[str, List[Dict[str, Any]]] = {}
+        self._flush_tasks: Dict[str, asyncio.Task] = {}
+        self._locks: Dict[str, asyncio.Lock] = {}
+    
+    async def add_operation(self, 
+                           operation_type: str, 
+                           operation_data: Dict[str, Any],
+                           flush_callback: Callable[[List[Dict[str, Any]]], Awaitable[Any]]) -> None:
+        """Add operation to be batched.
+        
+        Args:
+            operation_type: Type of operation (e.g., 'database_insert', 'cache_set')
+            operation_data: Operation data
+            flush_callback: Async function to execute the batch
+        """
+        # Ensure lock exists
+        if operation_type not in self._locks:
+            self._locks[operation_type] = asyncio.Lock()
+        
+        async with self._locks[operation_type]:
+            # Initialize pending operations for this type
+            if operation_type not in self.pending_operations:
+                self.pending_operations[operation_type] = []
+            
+            # Add operation
+            operation_data['_timestamp'] = time.time()
+            operation_data['_flush_callback'] = flush_callback
+            self.pending_operations[operation_type].append(operation_data)
+            
+            # Check if we need to flush
+            if len(self.pending_operations[operation_type]) >= self.batch_size:
+                await self._flush_operations(operation_type)
+            elif operation_type not in self._flush_tasks:
+                # Start auto-flush timer
+                self._flush_tasks[operation_type] = asyncio.create_task(
+                    self._auto_flush(operation_type)
+                )
+    
+    async def _auto_flush(self, operation_type: str) -> None:
+        """Auto-flush operations after interval."""
+        await asyncio.sleep(self.flush_interval)
+        
+        async with self._locks[operation_type]:
+            if operation_type in self.pending_operations:
+                await self._flush_operations(operation_type)
+    
+    async def _flush_operations(self, operation_type: str) -> None:
+        """Flush pending operations of a specific type."""
+        if operation_type not in self.pending_operations:
+            return
+        
+        operations = self.pending_operations[operation_type]
+        if not operations:
+            return
+        
+        # Clear pending operations
+        self.pending_operations[operation_type] = []
+        
+        # Cancel auto-flush task if it exists
+        if operation_type in self._flush_tasks:
+            self._flush_tasks[operation_type].cancel()
+            del self._flush_tasks[operation_type]
+        
+        # Get flush callback from first operation
+        flush_callback = operations[0]['_flush_callback']
+        
+        # Remove callback from operation data
+        clean_operations = []
+        for op in operations:
+            clean_op = {k: v for k, v in op.items() if not k.startswith('_')}
+            clean_operations.append(clean_op)
+        
+        try:
+            logger.debug(f"Flushing {len(clean_operations)} {operation_type} operations")
+            await flush_callback(clean_operations)
+        except Exception as e:
+            logger.error(f"Failed to flush {operation_type} operations: {e}")
+    
+    async def flush_all(self) -> None:
+        """Flush all pending operations immediately."""
+        for operation_type in list(self.pending_operations.keys()):
+            if self.pending_operations[operation_type]:
+                async with self._locks[operation_type]:
+                    await self._flush_operations(operation_type)
+
+
+# Global instances
+default_bulk_manager = AsyncBulkOperationManager()
+
+
+class AsyncRateLimiter:
+    """Asynchronous rate limiter for API calls."""
+    
+    def __init__(self, calls_per_second: float = 10.0, burst_size: int = 5):
+        """Initialize rate limiter.
+        
+        Args:
+            calls_per_second: Maximum calls per second
+            burst_size: Maximum burst size
+        """
+        self.calls_per_second = calls_per_second
+        self.burst_size = burst_size
+        self.tokens = float(burst_size)
+        self.last_update = time.time()
+        self._lock = asyncio.Lock()
+    
+    async def acquire(self) -> None:
+        """Acquire permission to make a call (blocks if rate limited)."""
+        async with self._lock:
+            now = time.time()
+            time_passed = now - self.last_update
+            
+            # Add tokens based on time passed
+            self.tokens = min(
+                self.burst_size,
+                self.tokens + time_passed * self.calls_per_second
+            )
+            self.last_update = now
+            
+            if self.tokens >= 1.0:
+                self.tokens -= 1.0
+            else:
+                # Calculate wait time
+                wait_time = (1.0 - self.tokens) / self.calls_per_second
+                logger.debug(f"Rate limited, waiting {wait_time:.3f}s")
+                await asyncio.sleep(wait_time)
+                self.tokens = 0.0
+
+
+def rate_limited_async(calls_per_second: float = 10.0, burst_size: int = 5):
+    """Decorator for async rate limiting.
+    
+    Args:
+        calls_per_second: Maximum calls per second
+        burst_size: Maximum burst size
+    """
+    limiter = AsyncRateLimiter(calls_per_second, burst_size)
+    
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            await limiter.acquire()
+            
+            if asyncio.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                loop = asyncio.get_event_loop()
+                with ThreadPoolExecutor() as executor:
+                    return await loop.run_in_executor(executor, func, *args, **kwargs)
         
         return wrapper
     return decorator

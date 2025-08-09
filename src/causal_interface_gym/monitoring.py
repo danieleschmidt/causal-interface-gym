@@ -292,3 +292,99 @@ def export_metrics_endpoint():
         'json': json.dumps(metrics.get_metrics(), indent=2),
         'health': health_checker.run_checks()
     }
+
+
+class AlertManager:
+    """Manage alerts and notifications for critical events."""
+    
+    def __init__(self):
+        """Initialize alert manager."""
+        self.alert_handlers = []
+        self.alert_history = []
+        self.alert_thresholds = {
+            'error_rate_per_minute': 10,
+            'response_time_p95_ms': 5000,
+            'memory_usage_percent': 90,
+            'disk_usage_percent': 90,
+            'failed_experiments_per_hour': 5
+        }
+    
+    def register_handler(self, handler: Callable[[Dict[str, Any]], None]) -> None:
+        """Register an alert handler function.
+        
+        Args:
+            handler: Function that takes alert data and sends notification
+        """
+        self.alert_handlers.append(handler)
+    
+    def check_thresholds(self) -> None:
+        """Check all metrics against alert thresholds."""
+        current_metrics = metrics.get_metrics()
+        alerts = []
+        
+        # Check error rate
+        if current_metrics.get('errors', 0) > self.alert_thresholds['error_rate_per_minute']:
+            alerts.append({
+                'type': 'error_rate',
+                'severity': 'high',
+                'message': f"High error rate: {current_metrics['errors']} errors",
+                'metric_value': current_metrics['errors'],
+                'threshold': self.alert_thresholds['error_rate_per_minute']
+            })
+        
+        # Check response times
+        response_times = current_metrics.get('response_times', [])
+        if response_times:
+            p95 = sorted(response_times)[int(0.95 * len(response_times))]
+            if p95 * 1000 > self.alert_thresholds['response_time_p95_ms']:
+                alerts.append({
+                    'type': 'slow_response',
+                    'severity': 'medium',
+                    'message': f"Slow response time: {p95*1000:.2f}ms (p95)",
+                    'metric_value': p95 * 1000,
+                    'threshold': self.alert_thresholds['response_time_p95_ms']
+                })
+        
+        # Send alerts
+        for alert in alerts:
+            self._send_alert(alert)
+    
+    def _send_alert(self, alert_data: Dict[str, Any]) -> None:
+        """Send alert to all registered handlers.
+        
+        Args:
+            alert_data: Alert information
+        """
+        alert_data['timestamp'] = time.time()
+        self.alert_history.append(alert_data)
+        
+        # Keep only last 100 alerts
+        if len(self.alert_history) > 100:
+            self.alert_history = self.alert_history[-100:]
+        
+        logger.warning(f"ALERT: {alert_data['type']} - {alert_data['message']}")
+        
+        for handler in self.alert_handlers:
+            try:
+                handler(alert_data)
+            except Exception as e:
+                logger.error(f"Alert handler failed: {e}")
+
+
+# Global alert manager
+alert_manager = AlertManager()
+
+
+def log_alert_handler(alert_data: Dict[str, Any]) -> None:
+    """Default log-based alert handler.
+    
+    Args:
+        alert_data: Alert information
+    """
+    logger.critical(f"ALERT: {alert_data['type']} - {alert_data['message']} "
+                   f"(value: {alert_data.get('metric_value')}, "
+                   f"threshold: {alert_data.get('threshold')})")
+
+
+# Register default alert handler
+alert_manager.register_handler(log_alert_handler)
