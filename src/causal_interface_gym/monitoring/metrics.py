@@ -10,6 +10,13 @@ import threading
 from contextlib import contextmanager
 
 try:
+    from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    CollectorRegistry = None
+
+try:
     from prometheus_client import (
         Counter, Histogram, Gauge, Summary,
         CollectorRegistry, generate_latest,
@@ -196,14 +203,15 @@ class MetricsCollector:
 class PrometheusMetrics:
     """Prometheus metrics integration."""
     
-    def __init__(self, registry: Optional[CollectorRegistry] = None):
+    def __init__(self, registry = None):
         """Initialize Prometheus metrics.
         
         Args:
             registry: Optional custom registry
         """
         if not PROMETHEUS_AVAILABLE:
-            raise ImportError("prometheus_client is required for Prometheus metrics")
+            logger.warning("prometheus_client not available, Prometheus metrics disabled")
+            return
         
         self.registry = registry or CollectorRegistry()
         

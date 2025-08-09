@@ -4,7 +4,6 @@ import time
 import hashlib
 import pickle
 import json
-import redis
 import logging
 from typing import Any, Dict, List, Optional, Callable, Tuple, Union
 from functools import wraps, lru_cache
@@ -16,6 +15,13 @@ import networkx as nx
 from dataclasses import dataclass
 import asyncio
 from datetime import datetime, timedelta
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +173,11 @@ class RedisCache:
         self.prefix = prefix
         self._stats = CacheStats()
         
+        if not REDIS_AVAILABLE:
+            logger.warning("Redis not available, falling back to in-memory cache")
+            self.redis_client = None
+            return
+        
         try:
             self.redis_client = redis.from_url(redis_url, decode_responses=False)
             # Test connection
@@ -258,9 +269,11 @@ class CacheManager:
         """
         self.backend = backend
         
-        if backend == "redis":
+        if backend == "redis" and REDIS_AVAILABLE:
             self.cache = RedisCache(**kwargs)
         else:
+            if backend == "redis" and not REDIS_AVAILABLE:
+                logger.warning("Redis backend requested but not available, using memory backend")
             self.cache = InMemoryCache(**kwargs)
         
         logger.info(f"Cache manager initialized with {backend} backend")
@@ -504,22 +517,33 @@ class PerformanceProfiler:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                import psutil
-                import os
-                
                 # Record start metrics
                 start_time = time.time()
-                start_memory = psutil.Process(os.getpid()).memory_info().rss
+                start_memory = None
+                
+                try:
+                    import psutil
+                    import os
+                    start_memory = psutil.Process(os.getpid()).memory_info().rss
+                except ImportError:
+                    pass  # psutil not available
                 
                 try:
                     result = func(*args, **kwargs)
                     
                     # Record end metrics
                     end_time = time.time()
-                    end_memory = psutil.Process(os.getpid()).memory_info().rss
-                    
                     duration = end_time - start_time
-                    memory_delta = end_memory - start_memory
+                    
+                    memory_delta = 0
+                    if start_memory:
+                        try:
+                            import psutil
+                            import os
+                            end_memory = psutil.Process(os.getpid()).memory_info().rss
+                            memory_delta = end_memory - start_memory
+                        except ImportError:
+                            pass
                     
                     with self._lock:
                         self.operation_times[operation_name].append(duration)

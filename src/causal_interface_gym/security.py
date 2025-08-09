@@ -352,3 +352,255 @@ class SecurityLogger:
 
 # Create global security logger instance
 security_logger = SecurityLogger()
+
+
+def validate_llm_response(response: str, max_length: int = 10000) -> str:
+    """Validate and sanitize LLM response.
+    
+    Args:
+        response: LLM response text
+        max_length: Maximum allowed response length
+        
+    Returns:
+        Validated response
+        
+    Raises:
+        ValidationError: If response is invalid
+    """
+    if not isinstance(response, str):
+        raise ValidationError(f"LLM response must be string, got {type(response)}")
+    
+    if len(response) > max_length:
+        raise ValidationError(f"Response too long: {len(response)} > {max_length}")
+    
+    # Check for potentially dangerous content
+    for pattern in DANGEROUS_PATTERNS:
+        if re.search(pattern, response, re.IGNORECASE):
+            logger.warning(f"Dangerous pattern detected in LLM response: {pattern}")
+            response = re.sub(pattern, '[FILTERED]', response, flags=re.IGNORECASE)
+    
+    return response
+
+
+def validate_experiment_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate experiment metadata for security.
+    
+    Args:
+        metadata: Experiment metadata dictionary
+        
+    Returns:
+        Validated metadata
+        
+    Raises:
+        ValidationError: If metadata is invalid
+    """
+    if not isinstance(metadata, dict):
+        raise ValidationError("Metadata must be a dictionary")
+    
+    # Check total size
+    import json
+    metadata_str = json.dumps(metadata)
+    if len(metadata_str) > 50000:  # 50KB limit
+        raise ValidationError(f"Metadata too large: {len(metadata_str)} bytes")
+    
+    # Sanitize string values
+    sanitized = {}
+    for key, value in metadata.items():
+        # Validate key
+        if not isinstance(key, str) or not key.strip():
+            continue  # Skip invalid keys
+        
+        key = sanitize_html_input(key.strip())[:100]  # Limit key length
+        
+        # Sanitize value based on type
+        if isinstance(value, str):
+            sanitized[key] = sanitize_html_input(value)[:1000]  # Limit string length
+        elif isinstance(value, (int, float, bool)):
+            sanitized[key] = value
+        elif isinstance(value, (list, dict)):
+            # For complex types, convert to string and sanitize
+            sanitized[key] = sanitize_html_input(str(value))[:1000]
+        else:
+            sanitized[key] = sanitize_html_input(str(value))[:1000]
+    
+    return sanitized
+
+
+class SecureExperimentRunner:
+    """Secure wrapper for experiment execution."""
+    
+    def __init__(self, environment, rate_limits: Optional[Dict[str, int]] = None):
+        """Initialize secure experiment runner.
+        
+        Args:
+            environment: CausalEnvironment instance
+            rate_limits: Custom rate limits for operations
+        """
+        self.environment = environment
+        self.rate_limits = rate_limits or {
+            'experiments_per_hour': 50,
+            'interventions_per_hour': 200,
+            'belief_queries_per_hour': 1000
+        }
+        self._operation_counts = {}
+        self._last_reset = None
+        
+    def _check_rate_limit(self, operation: str) -> None:
+        """Check if operation is within rate limits."""
+        import time
+        
+        current_time = time.time()
+        
+        # Reset counters every hour
+        if self._last_reset is None or current_time - self._last_reset > 3600:
+            self._operation_counts.clear()
+            self._last_reset = current_time
+        
+        # Check limit
+        current_count = self._operation_counts.get(operation, 0)
+        limit = self.rate_limits.get(f'{operation}_per_hour', float('inf'))
+        
+        if current_count >= limit:
+            raise SecurityError(f"Rate limit exceeded for {operation}: {current_count} >= {limit}")
+        
+        # Increment counter
+        self._operation_counts[operation] = current_count + 1
+        security_logger.logger.debug(f"Rate limit check passed for {operation}: {current_count + 1}/{limit}")
+    
+    def run_secure_experiment(self, agent, interventions: List[tuple], 
+                             measure_beliefs: List[str], 
+                             metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Run experiment with security validations.
+        
+        Args:
+            agent: LLM agent to test
+            interventions: List of (variable, value) interventions
+            measure_beliefs: List of beliefs to measure
+            metadata: Optional experiment metadata
+            
+        Returns:
+            Secure experiment results
+        """
+        # Rate limit check
+        self._check_rate_limit('experiments')
+        
+        # Validate inputs
+        if not interventions:
+            raise ValidationError("At least one intervention required")
+        
+        if len(interventions) > 20:  # Reasonable limit
+            raise ValidationError(f"Too many interventions: {len(interventions)} > 20")
+        
+        if not measure_beliefs:
+            raise ValidationError("At least one belief must be measured")
+        
+        if len(measure_beliefs) > 50:  # Reasonable limit
+            raise ValidationError(f"Too many beliefs to measure: {len(measure_beliefs)} > 50")
+        
+        # Validate and sanitize interventions
+        safe_interventions = []
+        for intervention in interventions:
+            if not isinstance(intervention, (tuple, list)) or len(intervention) != 2:
+                raise ValidationError("Each intervention must be (variable, value) tuple")
+            
+            var, value = intervention
+            var = validate_variable_name(var)
+            
+            # Validate intervention value
+            var_type = self.environment.variable_types.get(var, "binary")
+            value = validate_intervention_value(value, var_type, var)
+            
+            safe_interventions.append((var, value))
+            
+            # Rate limit interventions
+            self._check_rate_limit('interventions')
+        
+        # Validate and sanitize belief queries
+        safe_beliefs = []
+        for belief in measure_beliefs:
+            safe_belief = sanitize_belief_query(belief)
+            safe_beliefs.append(safe_belief)
+            
+            # Rate limit belief queries
+            self._check_rate_limit('belief_queries')
+        
+        # Validate metadata
+        safe_metadata = validate_experiment_metadata(metadata or {})
+        
+        # Log experiment start
+        agent_id = getattr(agent, 'id', str(type(agent).__name__))
+        security_logger.log_experiment_start(agent_id, "secure_causal_reasoning")
+        
+        try:
+            # Run the experiment with validated inputs
+            from .core import InterventionUI
+            
+            # Create UI instance
+            ui = InterventionUI(self.environment)
+            
+            # Execute experiment
+            results = ui.run_experiment(
+                agent=agent,
+                interventions=safe_interventions,
+                measure_beliefs=safe_beliefs
+            )
+            
+            # Add security metadata
+            results['security_info'] = {
+                'validated': True,
+                'sanitized_interventions': len(safe_interventions),
+                'sanitized_beliefs': len(safe_beliefs),
+                'rate_limits_applied': True
+            }
+            
+            # Validate LLM responses in results
+            if 'intervention_results' in results:
+                for result in results['intervention_results']:
+                    if 'agent_beliefs' in result:
+                        for belief, response in result['agent_beliefs'].items():
+                            if isinstance(response, str):
+                                result['agent_beliefs'][belief] = validate_llm_response(response)
+            
+            return results
+            
+        except Exception as e:
+            security_logger.log_security_violation(
+                "experiment_execution_error",
+                f"Agent: {agent_id}, Error: {str(e)}"
+            )
+            raise
+    
+    def get_security_stats(self) -> Dict[str, Any]:
+        """Get security and usage statistics.
+        
+        Returns:
+            Security statistics
+        """
+        return {
+            'operation_counts': self._operation_counts.copy(),
+            'rate_limits': self.rate_limits.copy(),
+            'last_reset': self._last_reset,
+            'security_features': [
+                'input_validation',
+                'rate_limiting', 
+                'html_sanitization',
+                'variable_name_validation',
+                'graph_size_limits',
+                'experiment_audit_logging'
+            ]
+        }
+
+
+def create_secure_experiment_runner(dag: Optional[Dict] = None, 
+                                  rate_limits: Optional[Dict[str, int]] = None) -> SecureExperimentRunner:
+    """Create a secure experiment runner.
+    
+    Args:
+        dag: Optional DAG specification
+        rate_limits: Optional custom rate limits
+        
+    Returns:
+        Secure experiment runner instance
+    """
+    secure_env = create_secure_environment(dag)
+    return SecureExperimentRunner(secure_env.environment, rate_limits)

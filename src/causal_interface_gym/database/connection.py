@@ -2,6 +2,7 @@
 
 import os
 import logging
+import time
 from typing import Optional, Dict, Any
 from contextlib import contextmanager
 from urllib.parse import urlparse
@@ -20,6 +21,21 @@ except ImportError:
     SQLITE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+
+class DatabaseError(Exception):
+    """Database-related errors."""
+    pass
+
+
+class ConnectionError(DatabaseError):
+    """Database connection errors."""
+    pass
+
+
+class QueryError(DatabaseError):
+    """Query execution errors."""
+    pass
 
 
 class DatabaseManager:
@@ -117,37 +133,80 @@ class DatabaseManager:
             finally:
                 conn.close()
     
-    def execute_query(self, query: str, params: Optional[tuple] = None) -> Any:
-        """Execute a query and return results.
+    def execute_query(self, query: str, params: Optional[tuple] = None, retry_count: int = 3) -> Any:
+        """Execute a query with retry logic and comprehensive error handling.
         
         Args:
             query: SQL query
             params: Query parameters
+            retry_count: Number of retry attempts
             
         Returns:
             Query results
+            
+        Raises:
+            DatabaseError: If query fails after retries
         """
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
+        last_exception = None
+        
+        for attempt in range(retry_count):
             try:
-                if params:
-                    cursor.execute(query, params)
-                else:
-                    cursor.execute(query)
-                
-                # For SELECT queries, fetch results
-                if query.strip().upper().startswith('SELECT'):
-                    return cursor.fetchall()
-                else:
-                    # For INSERT/UPDATE/DELETE, commit and return affected rows
-                    conn.commit()
-                    return cursor.rowcount
+                with self.get_connection() as conn:
+                    cursor = conn.cursor()
+                    try:
+                        # Log query for debugging (sanitized)
+                        sanitized_query = self._sanitize_query_for_logging(query)
+                        logger.debug(f"Executing query (attempt {attempt + 1}): {sanitized_query}")
+                        
+                        if params:
+                            cursor.execute(query, params)
+                        else:
+                            cursor.execute(query)
+                        
+                        # For SELECT queries, fetch results
+                        if query.strip().upper().startswith('SELECT'):
+                            results = cursor.fetchall()
+                            logger.debug(f"Query returned {len(results) if results else 0} rows")
+                            return results
+                        else:
+                            # For INSERT/UPDATE/DELETE, commit and return affected rows
+                            conn.commit()
+                            affected_rows = cursor.rowcount
+                            logger.debug(f"Query affected {affected_rows} rows")
+                            return affected_rows
+                            
+                    except Exception as e:
+                        conn.rollback()
+                        raise
+                    finally:
+                        cursor.close()
+                        
             except Exception as e:
-                conn.rollback()
-                logger.error(f"Query execution failed: {e}")
-                raise
-            finally:
-                cursor.close()
+                last_exception = e
+                if attempt < retry_count - 1:
+                    import time
+                    wait_time = (attempt + 1) * 0.5  # Exponential backoff
+                    logger.warning(f"Query failed on attempt {attempt + 1}, retrying in {wait_time}s: {e}")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"Query failed after {retry_count} attempts: {e}")
+        
+        raise DatabaseError(f"Query failed after {retry_count} attempts: {last_exception}")
+    
+    def _sanitize_query_for_logging(self, query: str) -> str:
+        """Sanitize query for safe logging (remove sensitive data).
+        
+        Args:
+            query: Original query
+            
+        Returns:
+            Sanitized query for logging
+        """
+        # Replace potential sensitive data patterns
+        import re
+        sanitized = re.sub(r"'[^']*'", "'***'", query)  # Hide string literals
+        sanitized = re.sub(r'\$\d+', '$***', sanitized)  # Hide parameter placeholders
+        return sanitized[:200] + '...' if len(sanitized) > 200 else sanitized
     
     def create_tables(self) -> None:
         """Create required database tables."""
@@ -250,11 +309,109 @@ class DatabaseManager:
         for table_sql in tables:
             self.execute_query(table_sql)
     
+    def health_check(self) -> Dict[str, Any]:
+        """Check database connection health.
+        
+        Returns:
+            Health check results
+        """
+        try:
+            start_time = time.time()
+            result = self.execute_query("SELECT 1 as health_check")
+            query_time = time.time() - start_time
+            
+            return {
+                "status": "healthy",
+                "database_type": self.db_type,
+                "query_time_ms": round(query_time * 1000, 2),
+                "connection_pool_active": self.connection_pool is not None,
+                "result": result is not None
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "database_type": self.db_type,
+                "error": str(e),
+                "connection_pool_active": self.connection_pool is not None
+            }
+    
+    def get_connection_stats(self) -> Dict[str, Any]:
+        """Get connection pool statistics.
+        
+        Returns:
+            Connection statistics
+        """
+        stats = {
+            "database_type": self.db_type,
+            "database_url_scheme": urlparse(self.database_url).scheme
+        }
+        
+        if self.db_type == 'postgresql' and self.connection_pool:
+            try:
+                stats.update({
+                    "pool_size": self.connection_pool.maxconn,
+                    "pool_available": len(self.connection_pool._available),
+                    "pool_used": len(self.connection_pool._used)
+                })
+            except Exception as e:
+                stats["pool_error"] = str(e)
+        
+        return stats
+    
+    def backup_database(self, backup_path: str) -> bool:
+        """Create database backup (SQLite only).
+        
+        Args:
+            backup_path: Path for backup file
+            
+        Returns:
+            True if backup successful
+        """
+        if self.db_type != 'sqlite':
+            logger.warning("Backup only supported for SQLite databases")
+            return False
+        
+        try:
+            import shutil
+            db_path = self.database_url.replace('sqlite:///', '')
+            shutil.copy2(db_path, backup_path)
+            logger.info(f"Database backed up to {backup_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Backup failed: {e}")
+            return False
+    
+    def vacuum_database(self) -> bool:
+        """Vacuum database to reclaim space.
+        
+        Returns:
+            True if vacuum successful
+        """
+        try:
+            if self.db_type == 'sqlite':
+                self.execute_query("VACUUM")
+            elif self.db_type == 'postgresql':
+                # Note: VACUUM cannot be run inside a transaction in PostgreSQL
+                with self.get_connection() as conn:
+                    conn.autocommit = True
+                    cursor = conn.cursor()
+                    cursor.execute("VACUUM ANALYZE")
+                    cursor.close()
+            
+            logger.info("Database vacuumed successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Database vacuum failed: {e}")
+            return False
+    
     def close(self) -> None:
         """Close database connections."""
-        if self.db_type == 'postgresql' and self.connection_pool:
-            self.connection_pool.closeall()
-            logger.info("PostgreSQL connection pool closed")
+        try:
+            if self.db_type == 'postgresql' and self.connection_pool:
+                self.connection_pool.closeall()
+                logger.info("PostgreSQL connection pool closed")
+        except Exception as e:
+            logger.error(f"Error closing database connections: {e}")
     
     def __enter__(self):
         return self
