@@ -1,0 +1,57 @@
+# Multi-stage build for optimized production image
+FROM node:18-alpine AS base
+WORKDIR /app
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
+
+# Build stage
+FROM base AS builder
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+
+# Build with production optimizations
+ENV NODE_ENV=production
+ENV GENERATE_SOURCEMAP=false
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine AS production
+
+# Install security updates
+RUN apk update && apk upgrade && apk add --no-cache dumb-init
+
+# Copy custom nginx configuration
+COPY nginx/production.conf /etc/nginx/conf.d/default.conf
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Create health check endpoint
+RUN echo '<!DOCTYPE html><html><body><h1>OK</h1></body></html>' > /usr/share/nginx/html/health
+
+# Security: Run as non-root user
+RUN addgroup -g 1001 -S nginx-app && \
+    adduser -S nginx-app -u 1001 && \
+    chown -R nginx-app:nginx-app /usr/share/nginx/html && \
+    chown -R nginx-app:nginx-app /var/cache/nginx && \
+    chown -R nginx-app:nginx-app /var/log/nginx && \
+    chown -R nginx-app:nginx-app /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx-app:nginx-app /var/run/nginx.pid
+
+USER nginx-app
+
+EXPOSE 3000
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["nginx", "-g", "daemon off;"]

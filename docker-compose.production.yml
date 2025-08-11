@@ -1,7 +1,32 @@
 version: '3.8'
 
 services:
-  causal-gym-api:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://backend:8000/api
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - causal_network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
     build:
       context: .
       dockerfile: Dockerfile.production
