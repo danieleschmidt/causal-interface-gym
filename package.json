@@ -41,7 +41,7 @@
     "@mui/icons-material": "^5.15.0",
     "react-hook-form": "^7.48.0",
     "react-query": "^3.39.0",
-    "zustand": "^4.4.0",
+    "zustand": "^5.0.7",
     "isomorphic-dompurify": "^2.3.0"
   },
   "devDependencies": {
