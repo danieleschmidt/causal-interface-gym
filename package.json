@@ -55,7 +55,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
-    "vitest": "^1.0.4",
+    "vitest": "^3.2.4",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "@storybook/react": "^9.0.18",
