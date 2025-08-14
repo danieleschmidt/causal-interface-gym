@@ -1,62 +1,62 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 import { CausalGraph } from '../../components/CausalGraph'
 import { CausalGraph as CausalGraphType } from '../../types'
 
 // Mock D3 for testing
-jest.mock('d3', () => ({
-  select: jest.fn(() => ({
-    selectAll: jest.fn(() => ({
-      remove: jest.fn(),
-      data: jest.fn(() => ({
-        enter: jest.fn(() => ({
-          append: jest.fn(() => ({
-            attr: jest.fn(() => ({ attr: jest.fn() })),
-            style: jest.fn(() => ({ style: jest.fn() })),
-            text: jest.fn(() => ({ text: jest.fn() })),
-            on: jest.fn(() => ({ on: jest.fn() })),
-            call: jest.fn(() => ({ call: jest.fn() })),
+vi.mock('d3', () => ({
+  select: vi.fn(() => ({
+    selectAll: vi.fn(() => ({
+      remove: vi.fn(),
+      data: vi.fn(() => ({
+        enter: vi.fn(() => ({
+          append: vi.fn(() => ({
+            attr: vi.fn(() => ({ attr: vi.fn() })),
+            style: vi.fn(() => ({ style: vi.fn() })),
+            text: vi.fn(() => ({ text: vi.fn() })),
+            on: vi.fn(() => ({ on: vi.fn() })),
+            call: vi.fn(() => ({ call: vi.fn() })),
           })),
         })),
       })),
     })),
-    append: jest.fn(() => ({
-      attr: jest.fn(() => ({ attr: jest.fn() })),
-      append: jest.fn(() => ({
-        attr: jest.fn(() => ({ attr: jest.fn() })),
-        append: jest.fn(() => ({
-          attr: jest.fn(() => ({ attr: jest.fn() })),
+    append: vi.fn(() => ({
+      attr: vi.fn(() => ({ attr: vi.fn() })),
+      append: vi.fn(() => ({
+        attr: vi.fn(() => ({ attr: vi.fn() })),
+        append: vi.fn(() => ({
+          attr: vi.fn(() => ({ attr: vi.fn() })),
         })),
       })),
     })),
-    call: jest.fn(),
+    call: vi.fn(),
   })),
-  forceSimulation: jest.fn(() => ({
-    force: jest.fn(() => ({ force: jest.fn() })),
-    on: jest.fn(() => ({ on: jest.fn() })),
-    stop: jest.fn(),
+  forceSimulation: vi.fn(() => ({
+    force: vi.fn(() => ({ force: vi.fn() })),
+    on: vi.fn(() => ({ on: vi.fn() })),
+    stop: vi.fn(),
   })),
-  forceLink: jest.fn(() => ({
-    id: jest.fn(() => ({ id: jest.fn() })),
-    distance: jest.fn(() => ({ distance: jest.fn() })),
+  forceLink: vi.fn(() => ({
+    id: vi.fn(() => ({ id: vi.fn() })),
+    distance: vi.fn(() => ({ distance: vi.fn() })),
   })),
-  forceManyBody: jest.fn(() => ({
-    strength: jest.fn(() => ({ strength: jest.fn() })),
+  forceManyBody: vi.fn(() => ({
+    strength: vi.fn(() => ({ strength: vi.fn() })),
   })),
-  forceCenter: jest.fn(() => ({ forceCenter: jest.fn() })),
-  forceCollide: jest.fn(() => ({
-    radius: jest.fn(() => ({ radius: jest.fn() })),
+  forceCenter: vi.fn(() => ({ forceCenter: vi.fn() })),
+  forceCollide: vi.fn(() => ({
+    radius: vi.fn(() => ({ radius: vi.fn() })),
   })),
-  zoom: jest.fn(() => ({
-    scaleExtent: jest.fn(() => ({
-      scaleExtent: jest.fn(),
-      on: jest.fn(() => ({ on: jest.fn() })),
+  zoom: vi.fn(() => ({
+    scaleExtent: vi.fn(() => ({
+      scaleExtent: vi.fn(),
+      on: vi.fn(() => ({ on: vi.fn() })),
     })),
   })),
   zoomIdentity: { x: 0, y: 0, k: 1 },
-  drag: jest.fn(() => ({
-    on: jest.fn(() => ({ on: jest.fn() })),
+  drag: vi.fn(() => ({
+    on: vi.fn(() => ({ on: vi.fn() })),
   })),
 }))
 
@@ -75,7 +75,7 @@ const mockGraph: CausalGraphType = {
 
 describe('CausalGraph Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   test('renders without crashing', () => {
@@ -97,7 +97,7 @@ describe('CausalGraph Component', () => {
   })
 
   test('calls onNodeClick when node is clicked', async () => {
-    const mockOnNodeClick = jest.fn()
+    const mockOnNodeClick = vi.fn()
     render(<CausalGraph graph={mockGraph} onNodeClick={mockOnNodeClick} />)
     
     // Note: In actual implementation, this would require mocking D3 interactions

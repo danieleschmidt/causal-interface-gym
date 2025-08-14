@@ -1,28 +1,28 @@
 import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import { vi } from 'vitest'
+import React from 'react'
 import { useExperiment } from '../../hooks/useExperiment'
 import { apiClient } from '../../api/client'
 import { CausalEnvironment, Intervention } from '../../types'
 
 // Mock the API client
-jest.mock('../../api/client', () => ({
+vi.mock('../../api/client', () => ({
   apiClient: {
-    runExperiment: jest.fn(),
-    getExperimentHistory: jest.fn(),
-    getEnvironments: jest.fn(),
-    validateEnvironment: jest.fn(),
+    runExperiment: vi.fn(),
+    getExperimentHistory: vi.fn(),
+    getEnvironments: vi.fn(),
+    validateEnvironment: vi.fn(),
   },
 }))
 
-const mockApiClient = apiClient as jest.Mocked<typeof apiClient>
+const mockApiClient = apiClient as ReturnType<typeof vi.mocked>
 
 describe('useExperiment Hook', () => {
   let queryClient: QueryClient
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    React.createElement(QueryClientProvider, { client: queryClient }, children)
   )
 
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe('useExperiment Hook', () => {
         mutations: { retry: false },
       },
     })
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   const mockEnvironment: CausalEnvironment = {
@@ -149,7 +149,7 @@ describe('useExperiment Hook', () => {
 
     mockApiClient.runExperiment.mockResolvedValueOnce(mockResult)
 
-    const onSuccess = jest.fn()
+    const onSuccess = vi.fn()
     const { result } = renderHook(() => useExperiment({ onSuccess }), { wrapper })
 
     act(() => {
