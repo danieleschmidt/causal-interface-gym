@@ -26,7 +26,7 @@ export class ValidationResult {
   }
 }
 
-export const validateCausalGraph = (graph: CausalGraph): ValidationResult {
+export const validateCausalGraph = (graph: CausalGraph): ValidationResult => {
   const result = new ValidationResult(true)
 
   // Validate nodes
@@ -89,7 +89,7 @@ export const validateCausalGraph = (graph: CausalGraph): ValidationResult {
   return result
 }
 
-export const validateIntervention = (intervention: Intervention, nodes: CausalNode[]): ValidationResult {
+export const validateIntervention = (intervention: Intervention, nodes: CausalNode[]): ValidationResult => {
   const result = new ValidationResult(true)
 
   // Check variable exists
