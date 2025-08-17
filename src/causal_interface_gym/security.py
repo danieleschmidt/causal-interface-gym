@@ -2,6 +2,9 @@
 
 import re
 import logging
+import time
+import hashlib
+import secrets
 from typing import Any, Dict, List, Set, Optional, Union
 from functools import wraps
 
@@ -13,6 +16,8 @@ MAX_GRAPH_EDGES = 5000
 MAX_VARIABLE_NAME_LENGTH = 100
 MAX_EXPERIMENT_DURATION = 300  # seconds
 MAX_BELIEF_QUERIES = 10000
+MAX_INPUT_LENGTH = 10000
+MAX_LLM_RESPONSE_LENGTH = 50000
 
 # Dangerous patterns to block
 DANGEROUS_PATTERNS = [
@@ -24,9 +29,21 @@ DANGEROUS_PATTERNS = [
     r'__import__',  # Import statements
     r'globals\s*\(',  # Globals access
     r'locals\s*\(',   # Locals access
+    r'subprocess\.',  # Subprocess calls
+    r'os\.',        # OS module calls
+    r'system\s*\(',  # System calls
+    r'open\s*\(',   # File operations
+    r'file\s*\(',   # File operations
+    r'rm\s+-',      # Delete commands
+    r'DROP\s+TABLE', # SQL injection
+    r'DELETE\s+FROM', # SQL injection
 ]
 
 SAFE_VARIABLE_NAME_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+# Rate limiting storage
+_rate_limit_store = {}
+_security_events = []
 
 
 class SecurityError(Exception):

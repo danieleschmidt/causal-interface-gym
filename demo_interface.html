@@ -1,0 +1,27 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Causal Interface Experiment</title>
+            <style>
+                .intervention-ui { padding: 20px; font-family: Arial, sans-serif; }
+                .observation-panel { border: 1px solid #ccc; padding: 10px; margin: 10px; }
+                .graph-container { width: 100%; height: 400px; border: 1px solid #ddd; }
+                button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+                button:hover { background: #0056b3; }
+            </style>
+        </head>
+        <body>
+            <div class="intervention-ui">
+                <h1>Causal Reasoning Experiment</h1>
+                <button onclick="intervene('sprinkler')">Toggle Sprinkler</button><div class="observation-panel"><h3>Grass Status</h3><div id="wet_grass-value"></div></div><div id="causal-graph" class="graph-container"></div>
+            </div>
+            <script>
+                function intervene(variable) {
+                    console.log('Intervening on:', variable);
+                    // In real implementation, this would trigger intervention
+                }
+            </script>
+        </body>
+        </html>
+        
