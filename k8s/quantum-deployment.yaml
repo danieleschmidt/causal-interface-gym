@@ -1,0 +1,766 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: causal-interface-gym-quantum
+  labels:
+    name: causal-interface-gym-quantum
+    tier: production
+    quantum-enabled: "true"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quantum-config
+  namespace: causal-interface-gym-quantum
+data:
+  quantum.yaml: |
+    quantum:
+      backend: qiskit
+      max_qubits: 20
+      coherence_threshold: 0.7
+      decoherence_time: 1.0
+      quantum_processors: 4
+      
+    causal_discovery:
+      max_hypotheses: 100
+      convergence_threshold: 1e-6
+      parallel_discovery: true
+      
+    agents:
+      max_agents: 20
+      collaboration_timeout: 300
+      response_time_limit: 30.0
+      
+    evolution:
+      max_concurrent_experiments: 10
+      population_size: 50
+      mutation_rate: 0.1
+      crossover_rate: 0.8
+      
+    federation:
+      privacy_level: differential_privacy
+      encryption_enabled: true
+      privacy_budget: 1.0
+      
+    research:
+      latex_enabled: true
+      auto_compile_pdf: true
+      max_figures: 10
+      
+    monitoring:
+      metrics_enabled: true
+      tracing_enabled: true
+      log_level: info
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quantum-secrets
+  namespace: causal-interface-gym-quantum
+type: Opaque
+data:
+  openai-api-key: ""  # Base64 encoded
+  anthropic-api-key: ""  # Base64 encoded
+  postgres-password: cXVhbnR1bV9zZWN1cmVfMjAyNQ==  # quantum_secure_2025
+  grafana-password: cXVhbnR1bV9hZG1pbl8yMDI1  # quantum_admin_2025
+  federation-encryption-key: ""  # Base64 encoded 256-bit key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quantum-causal-discovery
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: quantum-causal-discovery
+    tier: core
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quantum-causal-discovery
+  template:
+    metadata:
+      labels:
+        app: quantum-causal-discovery
+        tier: core
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: quantum-discovery
+        image: causal-interface-gym:quantum-latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: PYTHONPATH
+          value: "/app/src"
+        - name: QUANTUM_BACKEND
+          value: "qiskit"
+        - name: QUANTUM_PROCESSORS
+          value: "4"
+        - name: COHERENCE_THRESHOLD
+          value: "0.7"
+        - name: MAX_QUBITS
+          value: "20"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: quantum-config
+          mountPath: /app/config
+          readOnly: true
+        - name: quantum-results
+          mountPath: /app/results
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+      volumes:
+      - name: quantum-config
+        configMap:
+          name: quantum-config
+      - name: quantum-results
+        persistentVolumeClaim:
+          claimName: quantum-results-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quantum-causal-discovery-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: quantum-causal-discovery
+spec:
+  selector:
+    app: quantum-causal-discovery
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-agent-orchestrator
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: multi-agent-orchestrator
+    tier: core
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: multi-agent-orchestrator
+  template:
+    metadata:
+      labels:
+        app: multi-agent-orchestrator
+        tier: core
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: orchestrator
+        image: causal-interface-gym:agents-latest
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: PYTHONPATH
+          value: "/app/src"
+        - name: MAX_AGENTS
+          value: "20"
+        - name: COLLABORATION_TIMEOUT
+          value: "300"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: openai-api-key
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: anthropic-api-key
+        resources:
+          requests:
+            memory: "6Gi"
+            cpu: "3000m"
+          limits:
+            memory: "12Gi"
+            cpu: "6000m"
+        volumeMounts:
+        - name: agent-memory
+          mountPath: /app/memory
+        - name: collaboration-logs
+          mountPath: /app/logs
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: agent-memory
+        persistentVolumeClaim:
+          claimName: agent-memory-pvc
+      - name: collaboration-logs
+        persistentVolumeClaim:
+          claimName: collaboration-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-agent-orchestrator-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: multi-agent-orchestrator
+spec:
+  selector:
+    app: multi-agent-orchestrator
+  ports:
+  - port: 8081
+    targetPort: 8081
+    name: http
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: experiment-evolution
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: experiment-evolution
+    tier: core
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: experiment-evolution
+  template:
+    metadata:
+      labels:
+        app: experiment-evolution
+        tier: core
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: evolution-engine
+        image: causal-interface-gym:evolution-latest
+        ports:
+        - containerPort: 8082
+          name: http
+        env:
+        - name: PYTHONPATH
+          value: "/app/src"
+        - name: MAX_CONCURRENT_EXPERIMENTS
+          value: "10"
+        - name: EVOLUTION_STRATEGY
+          value: "evolutionary"
+        - name: POPULATION_SIZE
+          value: "50"
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4000m"
+          limits:
+            memory: "16Gi"
+            cpu: "8000m"
+        volumeMounts:
+        - name: experiment-data
+          mountPath: /app/experiments
+        - name: evolution-results
+          mountPath: /app/results
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8082
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: experiment-data
+        persistentVolumeClaim:
+          claimName: experiment-data-pvc
+      - name: evolution-results
+        persistentVolumeClaim:
+          claimName: evolution-results-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: experiment-evolution-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: experiment-evolution
+spec:
+  selector:
+    app: experiment-evolution
+  ports:
+  - port: 8082
+    targetPort: 8082
+    name: http
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: federated-coordinator
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: federated-coordinator
+    tier: federation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: federated-coordinator
+  template:
+    metadata:
+      labels:
+        app: federated-coordinator
+        tier: federation
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: federation-coordinator
+        image: causal-interface-gym:federated-latest
+        ports:
+        - containerPort: 8083
+          name: http
+        - containerPort: 9083
+          name: p2p
+        env:
+        - name: PYTHONPATH
+          value: "/app/src"
+        - name: NODE_ROLE
+          value: "coordinator"
+        - name: PRIVACY_LEVEL
+          value: "differential_privacy"
+        - name: ENCRYPTION_ENABLED
+          value: "true"
+        - name: FEDERATION_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: federation-encryption-key
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: federated-models
+          mountPath: /app/models
+        - name: federation-keys
+          mountPath: /app/keys
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8083
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8083
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: federated-models
+        persistentVolumeClaim:
+          claimName: federated-models-pvc
+      - name: federation-keys
+        persistentVolumeClaim:
+          claimName: federation-keys-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: federated-coordinator-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: federated-coordinator
+spec:
+  selector:
+    app: federated-coordinator
+  ports:
+  - port: 8083
+    targetPort: 8083
+    name: http
+  - port: 9083
+    targetPort: 9083
+    name: p2p
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: api-gateway
+    tier: gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        tier: gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: gateway
+        image: causal-interface-gym:gateway-latest
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8001
+          name: admin
+        env:
+        - name: GATEWAY_MODE
+          value: "quantum"
+        - name: LOAD_BALANCER_ALGORITHM
+          value: "round_robin"
+        - name: RATE_LIMITING_ENABLED
+          value: "true"
+        - name: WEBSOCKET_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: gateway-logs
+          mountPath: /app/logs
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: gateway-logs
+        persistentVolumeClaim:
+          claimName: gateway-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: api-gateway
+spec:
+  selector:
+    app: api-gateway
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8001
+    targetPort: 8001
+    name: admin
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quantum-frontend
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: quantum-frontend
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quantum-frontend
+  template:
+    metadata:
+      labels:
+        app: quantum-frontend
+        tier: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: causal-interface-gym:frontend-quantum
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: REACT_APP_API_BASE_URL
+          value: "http://api-gateway-service:8000"
+        - name: REACT_APP_QUANTUM_ENABLED
+          value: "true"
+        - name: REACT_APP_WEBSOCKET_URL
+          value: "ws://api-gateway-service:8000/ws"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quantum-frontend-service
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: quantum-frontend
+spec:
+  selector:
+    app: quantum-frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  type: LoadBalancer
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quantum-results-pvc
+  namespace: causal-interface-gym-quantum
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: quantum-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: agent-memory-pvc
+  namespace: causal-interface-gym-quantum
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: quantum-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: experiment-data-pvc
+  namespace: causal-interface-gym-quantum
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: quantum-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: federated-models-pvc
+  namespace: causal-interface-gym-quantum
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: quantum-ssd
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: quantum-discovery-hpa
+  namespace: causal-interface-gym-quantum
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: quantum-causal-discovery
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orchestrator-hpa
+  namespace: causal-interface-gym-quantum
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: multi-agent-orchestrator
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+# Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: quantum-network-policy
+  namespace: causal-interface-gym-quantum
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: causal-interface-gym-quantum
+    - podSelector: {}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: causal-interface-gym-quantum
+    - podSelector: {}
+  - to: []  # Allow external egress for API calls
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# Service Monitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: quantum-services-monitor
+  namespace: causal-interface-gym-quantum
+  labels:
+    app: quantum-monitoring
+spec:
+  selector:
+    matchLabels:
+      tier: core
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+---
+# Pod Disruption Budgets
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: quantum-discovery-pdb
+  namespace: causal-interface-gym-quantum
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: quantum-causal-discovery
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orchestrator-pdb
+  namespace: causal-interface-gym-quantum
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: multi-agent-orchestrator
