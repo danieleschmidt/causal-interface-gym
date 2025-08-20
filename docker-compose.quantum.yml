@@ -1,0 +1,528 @@
+version: '3.8'
+
+services:
+  # Quantum-Enhanced Causal Discovery Service
+  quantum-causal-discovery:
+    build:
+      context: .
+      dockerfile: Dockerfile.quantum
+    image: causal-interface-gym:quantum-latest
+    container_name: quantum-causal-discovery
+    environment:
+      - PYTHONPATH=/app/src
+      - QUANTUM_BACKEND=qiskit
+      - QUANTUM_PROCESSORS=4
+      - COHERENCE_THRESHOLD=0.7
+      - MAX_QUBITS=20
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app/src:ro
+      - ./data:/app/data
+      - quantum-results:/app/results
+    networks:
+      - quantum-net
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Multi-Agent LLM Orchestrator
+  multi-agent-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.agents
+    image: causal-interface-gym:agents-latest
+    container_name: multi-agent-orchestrator
+    environment:
+      - PYTHONPATH=/app/src
+      - MAX_AGENTS=20
+      - COLLABORATION_TIMEOUT=300
+      - LLM_PROVIDER=openai
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./src:/app/src:ro
+      - agent-memory:/app/memory
+      - collaboration-logs:/app/logs
+    networks:
+      - quantum-net
+      - agent-net
+    depends_on:
+      - redis-agents
+      - postgres-orchestrator
+    deploy:
+      resources:
+        limits:
+          cpus: '6.0'
+          memory: 12G
+        reservations:
+          cpus: '3.0'
+          memory: 6G
+
+  # Experiment Evolution Engine
+  experiment-evolution:
+    build:
+      context: .
+      dockerfile: Dockerfile.evolution
+    image: causal-interface-gym:evolution-latest
+    container_name: experiment-evolution
+    environment:
+      - PYTHONPATH=/app/src
+      - MAX_CONCURRENT_EXPERIMENTS=10
+      - EVOLUTION_STRATEGY=evolutionary
+      - MUTATION_RATE=0.1
+      - POPULATION_SIZE=50
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./src:/app/src:ro
+      - experiment-data:/app/experiments
+      - evolution-results:/app/results
+    networks:
+      - quantum-net
+      - evolution-net
+    depends_on:
+      - redis-experiments
+    deploy:
+      resources:
+        limits:
+          cpus: '8.0'
+          memory: 16G
+        reservations:
+          cpus: '4.0'
+          memory: 8G
+
+  # Federated Learning Coordinator
+  federated-coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile.federated
+    image: causal-interface-gym:federated-latest
+    container_name: federated-coordinator
+    environment:
+      - PYTHONPATH=/app/src
+      - NODE_ROLE=coordinator
+      - PRIVACY_LEVEL=differential_privacy
+      - FEDERATION_PORT=8083
+      - ENCRYPTION_ENABLED=true
+    ports:
+      - "8083:8083"
+      - "9083:9083"  # P2P communication
+    volumes:
+      - ./src:/app/src:ro
+      - federated-models:/app/models
+      - federation-keys:/app/keys
+    networks:
+      - quantum-net
+      - federation-net
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+  # Research Paper Generator
+  paper-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile.research
+    image: causal-interface-gym:research-latest
+    container_name: paper-generator
+    environment:
+      - PYTHONPATH=/app/src
+      - LATEX_ENABLED=true
+      - OUTPUT_DIR=/app/papers
+      - TEMPLATE_DIR=/app/templates
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./src:/app/src:ro
+      - ./docs/templates:/app/templates:ro
+      - research-papers:/app/papers
+      - research-figures:/app/figures
+    networks:
+      - quantum-net
+      - research-net
+    depends_on:
+      - multi-agent-orchestrator
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # AI Code Reviewer
+  ai-code-reviewer:
+    build:
+      context: .
+      dockerfile: Dockerfile.review
+    image: causal-interface-gym:review-latest
+    container_name: ai-code-reviewer
+    environment:
+      - PYTHONPATH=/app/src
+      - REVIEW_CONFIG_PATH=/app/config/review_config.json
+      - AUTO_FIX_ENABLED=true
+      - MAX_FINDINGS_PER_FILE=20
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config:ro
+      - code-review-cache:/app/cache
+      - review-reports:/app/reports
+    networks:
+      - quantum-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Meta-Learning System
+  meta-learner:
+    build:
+      context: .
+      dockerfile: Dockerfile.meta
+    image: causal-interface-gym:meta-latest
+    container_name: meta-learner
+    environment:
+      - PYTHONPATH=/app/src
+      - LEARNING_RATE=0.1
+      - EXPLORATION_RATE=0.3
+      - KNOWLEDGE_PATH=/app/knowledge/meta_knowledge.json
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./src:/app/src:ro
+      - meta-knowledge:/app/knowledge
+      - learning-sessions:/app/sessions
+    networks:
+      - quantum-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Frontend (Quantum-Enhanced UI)
+  quantum-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.quantum
+    image: causal-interface-gym:frontend-quantum
+    container_name: quantum-frontend
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_BASE_URL=http://api-gateway:8000
+      - REACT_APP_QUANTUM_ENABLED=true
+      - REACT_APP_WEBSOCKET_URL=ws://api-gateway:8000/ws
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src:ro
+    networks:
+      - quantum-net
+    depends_on:
+      - api-gateway
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # API Gateway with Load Balancing
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    image: causal-interface-gym:gateway-latest
+    container_name: api-gateway
+    environment:
+      - GATEWAY_MODE=quantum
+      - LOAD_BALANCER_ALGORITHM=round_robin
+      - RATE_LIMITING_ENABLED=true
+      - WEBSOCKET_ENABLED=true
+    ports:
+      - "8000:8000"
+      - "8001:8001"  # Admin interface
+    volumes:
+      - ./config/gateway:/app/config:ro
+      - gateway-logs:/app/logs
+    networks:
+      - quantum-net
+      - agent-net
+      - evolution-net
+      - federation-net
+      - research-net
+    depends_on:
+      - quantum-causal-discovery
+      - multi-agent-orchestrator
+      - experiment-evolution
+      - federated-coordinator
+      - paper-generator
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Redis for Agents
+  redis-agents:
+    image: redis:7-alpine
+    container_name: redis-agents
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-agents-data:/data
+    networks:
+      - agent-net
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # Redis for Experiments
+  redis-experiments:
+    image: redis:7-alpine
+    container_name: redis-experiments
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-experiments-data:/data
+    networks:
+      - evolution-net
+    command: redis-server --appendonly yes --maxmemory 4gb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # PostgreSQL for Orchestrator
+  postgres-orchestrator:
+    image: postgres:15-alpine
+    container_name: postgres-orchestrator
+    environment:
+      - POSTGRES_DB=orchestrator
+      - POSTGRES_USER=orchestrator
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-quantum_secure_2025}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-orchestrator-data:/var/lib/postgresql/data
+      - ./scripts/init-orchestrator-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - agent-net
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # Monitoring and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-quantum
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus-quantum.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - quantum-net
+      - monitoring-net
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-quantum
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-quantum_admin_2025}
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-quantum-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    networks:
+      - monitoring-net
+    depends_on:
+      - prometheus
+
+  # Jaeger for Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-quantum
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - monitoring-net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # Vector for Log Aggregation
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: vector-quantum
+    ports:
+      - "8383:8383"
+    volumes:
+      - ./monitoring/vector-quantum.toml:/etc/vector/vector.toml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - vector-data:/var/lib/vector
+    networks:
+      - monitoring-net
+    depends_on:
+      - prometheus
+
+  # Security Scanner
+  security-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.security
+    image: causal-interface-gym:security-latest
+    container_name: security-scanner
+    environment:
+      - SCAN_INTERVAL=3600  # 1 hour
+      - SECURITY_LEVEL=high
+      - VULNERABILITY_DB_UPDATE=true
+    volumes:
+      - ./src:/app/src:ro
+      - security-reports:/app/reports
+    networks:
+      - quantum-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+volumes:
+  quantum-results:
+    driver: local
+  agent-memory:
+    driver: local
+  collaboration-logs:
+    driver: local
+  experiment-data:
+    driver: local
+  evolution-results:
+    driver: local
+  federated-models:
+    driver: local
+  federation-keys:
+    driver: local
+  research-papers:
+    driver: local
+  research-figures:
+    driver: local
+  code-review-cache:
+    driver: local
+  review-reports:
+    driver: local
+  meta-knowledge:
+    driver: local
+  learning-sessions:
+    driver: local
+  redis-agents-data:
+    driver: local
+  redis-experiments-data:
+    driver: local
+  postgres-orchestrator-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  vector-data:
+    driver: local
+  gateway-logs:
+    driver: local
+  security-reports:
+    driver: local
+
+networks:
+  quantum-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  agent-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  evolution-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+  federation-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+  research-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.24.0.0/16
+  monitoring-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
