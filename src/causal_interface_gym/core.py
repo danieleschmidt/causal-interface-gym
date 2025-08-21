@@ -1,13 +1,85 @@
 """Core classes for causal environments and intervention interfaces."""
 
-from typing import Dict, List, Any, Optional, Set, Tuple, Union
+from typing import Dict, List, Any, Optional, Set, Tuple, Union, Callable
 import networkx as nx
 import numpy as np
 import itertools
 import logging
 from collections import defaultdict
+import asyncio
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import wraps
+import traceback
+from dataclasses import dataclass
+from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+class CausalComputationError(Exception):
+    """Custom exception for causal computation errors."""
+    pass
+
+class QuantumCausalError(Exception):
+    """Custom exception for quantum-enhanced causal operations."""
+    pass
+
+class OperationStatus(Enum):
+    """Status enum for async operations."""
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+@dataclass
+class CausalOperationResult:
+    """Result container for causal operations."""
+    status: OperationStatus
+    result: Any = None
+    error: Optional[Exception] = None
+    execution_time: float = 0.0
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+def async_safe_operation(max_retries: int = 3, timeout: float = 30.0):
+    """Decorator for safe async operations with retries and timeout."""
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
+                except asyncio.TimeoutError:
+                    logger.warning(f"Timeout in {func.__name__}, attempt {attempt + 1}/{max_retries}")
+                    if attempt == max_retries - 1:
+                        raise CausalComputationError(f"Operation {func.__name__} timed out after {max_retries} attempts")
+                except Exception as e:
+                    logger.error(f"Error in {func.__name__}, attempt {attempt + 1}/{max_retries}: {e}")
+                    if attempt == max_retries - 1:
+                        raise
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+        return wrapper
+    return decorator
+
+def quantum_resilient_computation(func: Callable) -> Callable:
+    """Decorator for quantum-resilient computations with fallback."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            # Attempt quantum-enhanced computation
+            return func(*args, **kwargs)
+        except QuantumCausalError as e:
+            logger.warning(f"Quantum computation failed, falling back to classical: {e}")
+            # Fallback to classical computation
+            return func(*args, quantum_enabled=False, **kwargs)
+        except Exception as e:
+            logger.error(f"Critical error in quantum computation: {e}")
+            raise CausalComputationError(f"Both quantum and classical computation failed: {e}")
+    return wrapper
 
 
 class CausalEnvironment:
