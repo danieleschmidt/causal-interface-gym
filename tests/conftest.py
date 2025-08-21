@@ -9,9 +9,13 @@ from pathlib import Path
 from typing import Dict, List, Any
 from unittest.mock import Mock, MagicMock
 
-from causal_interface_gym.core import CausalEnvironment, InterventionUI
-from causal_interface_gym.metrics import CausalMetrics, BeliefTracker
-from causal_interface_gym.database import (
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.causal_interface_gym.core import CausalEnvironment, InterventionUI
+from src.causal_interface_gym.metrics import CausalMetrics, BeliefTracker
+from src.causal_interface_gym.database import (
     DatabaseManager, 
     CacheManager,
     ExperimentRepository,

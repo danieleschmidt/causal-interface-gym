@@ -1,7 +1,10 @@
 """Tests for core causal environment functionality."""
 
 import pytest
-from causal_interface_gym.core import CausalEnvironment, InterventionUI
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from src.causal_interface_gym.core import CausalEnvironment, InterventionUI
 
 
 class TestCausalEnvironment:
