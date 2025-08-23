@@ -573,3 +573,424 @@ class CausalStructureLearner:
         logger.info(f"Consensus graph has {consensus_graph.number_of_edges()} edges")
         
         return consensus_graph, edge_probabilities
+
+
+class MetaCausalLearner:
+    """Meta-learning approach for adaptive causal discovery algorithm selection."""
+    
+    def __init__(self, 
+                 meta_learning_samples: int = 1000,
+                 performance_memory: int = 50):
+        """Initialize meta-causal learner.
+        
+        Args:
+            meta_learning_samples: Number of samples for meta-learning
+            performance_memory: Number of past performance records to keep
+        """
+        self.meta_learning_samples = meta_learning_samples
+        self.performance_memory = performance_memory
+        
+        # Algorithm performance history
+        self.algorithm_performance_history: Dict[str, List[float]] = {
+            'pc': [], 'ges': [], 'novel': [], 'quantum': []
+        }
+        
+        # Data characteristics history
+        self.data_characteristics_history: List[Dict[str, float]] = []
+        
+        # Meta-features for algorithm selection
+        self.meta_features = [
+            'n_samples', 'n_variables', 'sparsity', 'linearity', 
+            'gaussianity', 'edge_density_prior'
+        ]
+        
+        logger.info("Meta-causal learner initialized")
+    
+    def extract_data_characteristics(self, data: np.ndarray) -> Dict[str, float]:
+        """Extract characteristics from data for algorithm selection.
+        
+        Args:
+            data: Input data matrix
+            
+        Returns:
+            Dictionary of data characteristics
+        """
+        n_samples, n_variables = data.shape
+        
+        characteristics = {
+            'n_samples': float(n_samples),
+            'n_variables': float(n_variables),
+            'sample_to_var_ratio': float(n_samples / n_variables) if n_variables > 0 else 0.0
+        }
+        
+        # Statistical properties
+        try:
+            # Sparsity: measure of zero/near-zero correlations
+            corr_matrix = np.corrcoef(data.T)
+            corr_matrix = corr_matrix[~np.eye(corr_matrix.shape[0], dtype=bool)]
+            characteristics['sparsity'] = float(np.mean(np.abs(corr_matrix) < 0.1))
+            
+            # Linearity: measure of linear relationships
+            linear_scores = []
+            for i in range(min(n_variables, 5)):  # Sample a few variables
+                for j in range(i+1, min(n_variables, 5)):
+                    try:
+                        # Linear vs nonlinear fit comparison
+                        linear_corr = abs(np.corrcoef(data[:, i], data[:, j])[0, 1])
+                        linear_scores.append(linear_corr)
+                    except:
+                        continue
+            
+            characteristics['linearity'] = float(np.mean(linear_scores) if linear_scores else 0.5)
+            
+            # Gaussianity: test for normal distribution
+            gaussianity_scores = []
+            for i in range(min(n_variables, 5)):
+                from scipy.stats import normaltest
+                try:
+                    _, p_value = normaltest(data[:, i])
+                    gaussianity_scores.append(p_value)
+                except:
+                    continue
+            
+            characteristics['gaussianity'] = float(np.mean(gaussianity_scores) if gaussianity_scores else 0.5)
+            
+            # Edge density estimate from mutual information
+            edge_density = self._estimate_edge_density(data)
+            characteristics['edge_density_prior'] = edge_density
+            
+        except Exception as e:
+            logger.warning(f"Failed to extract some characteristics: {e}")
+            # Fill with defaults
+            for key in ['sparsity', 'linearity', 'gaussianity', 'edge_density_prior']:
+                if key not in characteristics:
+                    characteristics[key] = 0.5
+        
+        return characteristics
+    
+    def _estimate_edge_density(self, data: np.ndarray) -> float:
+        """Estimate expected edge density from data characteristics."""
+        try:
+            n_vars = data.shape[1]
+            if n_vars < 2:
+                return 0.0
+            
+            # Use mutual information to estimate connections
+            from sklearn.feature_selection import mutual_info_regression
+            
+            total_connections = 0
+            total_possible = n_vars * (n_vars - 1)
+            
+            for i in range(min(n_vars, 10)):  # Sample to avoid computational burden
+                for j in range(n_vars):
+                    if i != j:
+                        mi = mutual_info_regression(data[:, [i]], data[:, j])
+                        if mi[0] > 0.1:  # Threshold for meaningful connection
+                            total_connections += 1
+            
+            # Scale estimate
+            if n_vars > 10:
+                scale_factor = n_vars / 10
+                total_connections *= scale_factor
+                
+            edge_density = total_connections / total_possible
+            return min(edge_density, 1.0)
+            
+        except Exception as e:
+            logger.warning(f"Edge density estimation failed: {e}")
+            return 0.1  # Conservative estimate
+    
+    def select_best_algorithm(self, data: np.ndarray) -> str:
+        """Select best algorithm based on data characteristics and past performance.
+        
+        Args:
+            data: Input data matrix
+            
+        Returns:
+            Name of recommended algorithm
+        """
+        characteristics = self.extract_data_characteristics(data)
+        
+        # Simple rule-based selection enhanced with performance history
+        algorithm_scores = {}
+        
+        # Base scores from data characteristics
+        n_samples = characteristics['n_samples']
+        n_variables = characteristics['n_variables']
+        sparsity = characteristics['sparsity']
+        linearity = characteristics['linearity']
+        
+        # PC algorithm scoring
+        pc_score = 0.5
+        if n_samples > 1000 and sparsity > 0.7:  # PC works well with sparse, large datasets
+            pc_score += 0.3
+        if linearity > 0.6:  # PC assumes linear relationships
+            pc_score += 0.2
+        
+        # GES algorithm scoring  
+        ges_score = 0.5
+        if n_variables < 20:  # GES is computationally intensive
+            ges_score += 0.3
+        if linearity > 0.5:  # GES works well with linear models
+            ges_score += 0.2
+        
+        # Novel algorithm scoring
+        novel_score = 0.5
+        if sparsity < 0.5:  # Novel method good for dense relationships
+            novel_score += 0.2
+        if n_samples < 500:  # Works well with smaller datasets
+            novel_score += 0.3
+        
+        # Quantum algorithm scoring
+        quantum_score = 0.3  # Lower base score due to experimental nature
+        if n_variables <= 10 and n_samples > 100:  # Quantum has qubit limitations
+            quantum_score += 0.4
+        
+        algorithm_scores = {
+            'pc': pc_score,
+            'ges': ges_score, 
+            'novel': novel_score,
+            'quantum': quantum_score
+        }
+        
+        # Adjust scores based on historical performance
+        for algo_name, base_score in algorithm_scores.items():
+            if self.algorithm_performance_history[algo_name]:
+                avg_performance = np.mean(self.algorithm_performance_history[algo_name][-10:])
+                algorithm_scores[algo_name] = 0.7 * base_score + 0.3 * avg_performance
+        
+        # Select algorithm with highest score
+        best_algorithm = max(algorithm_scores, key=algorithm_scores.get)
+        
+        logger.info(f"Selected algorithm: {best_algorithm} (scores: {algorithm_scores})")
+        return best_algorithm
+    
+    def update_performance(self, algorithm: str, performance_score: float, 
+                          data_characteristics: Dict[str, float]):
+        """Update algorithm performance history.
+        
+        Args:
+            algorithm: Algorithm name
+            performance_score: Performance score (0-1)
+            data_characteristics: Characteristics of the data used
+        """
+        if algorithm in self.algorithm_performance_history:
+            self.algorithm_performance_history[algorithm].append(performance_score)
+            
+            # Keep only recent performance records
+            if len(self.algorithm_performance_history[algorithm]) > self.performance_memory:
+                self.algorithm_performance_history[algorithm] = \
+                    self.algorithm_performance_history[algorithm][-self.performance_memory:]
+        
+        # Store data characteristics
+        self.data_characteristics_history.append(data_characteristics)
+        if len(self.data_characteristics_history) > self.performance_memory:
+            self.data_characteristics_history = self.data_characteristics_history[-self.performance_memory:]
+    
+    def get_algorithm_recommendations(self, data: np.ndarray) -> Dict[str, float]:
+        """Get recommendations for all algorithms with confidence scores.
+        
+        Args:
+            data: Input data matrix
+            
+        Returns:
+            Dictionary of algorithm recommendations with confidence scores
+        """
+        characteristics = self.extract_data_characteristics(data)
+        
+        recommendations = {}
+        
+        # Get scores for all algorithms
+        for algo in ['pc', 'ges', 'novel', 'quantum']:
+            base_confidence = 0.5
+            
+            # Adjust based on data characteristics
+            if algo == 'pc':
+                if characteristics['sparsity'] > 0.7 and characteristics['n_samples'] > 1000:
+                    base_confidence += 0.3
+            elif algo == 'ges':
+                if characteristics['n_variables'] < 20 and characteristics['linearity'] > 0.6:
+                    base_confidence += 0.3
+            elif algo == 'novel':
+                if characteristics['edge_density_prior'] > 0.3:
+                    base_confidence += 0.2
+            elif algo == 'quantum':
+                if characteristics['n_variables'] <= 10:
+                    base_confidence += 0.2
+            
+            # Factor in historical performance
+            if self.algorithm_performance_history[algo]:
+                historical_perf = np.mean(self.algorithm_performance_history[algo][-5:])
+                confidence = 0.6 * base_confidence + 0.4 * historical_perf
+            else:
+                confidence = base_confidence
+            
+            recommendations[algo] = min(confidence, 1.0)
+        
+        return recommendations
+
+
+class HybridCausalDiscovery:
+    """Hybrid approach combining multiple discovery paradigms."""
+    
+    def __init__(self):
+        """Initialize hybrid discovery system."""
+        self.adaptive_discovery = AdaptiveCausalDiscovery()
+        self.structure_learner = CausalStructureLearner(n_bootstrap_samples=50)
+        self.meta_learner = MetaCausalLearner()
+        
+        # Import quantum and distributed components if available
+        try:
+            from ..quantum_acceleration import quantum_processor
+            self.quantum_processor = quantum_processor
+            self.quantum_available = True
+        except ImportError:
+            self.quantum_available = False
+            logger.warning("Quantum acceleration not available")
+        
+        try:
+            from ..distributed_computing import task_scheduler
+            self.task_scheduler = task_scheduler
+            self.distributed_available = True
+        except ImportError:
+            self.distributed_available = False
+            logger.warning("Distributed computing not available")
+    
+    async def comprehensive_discovery(self, 
+                                    data: np.ndarray, 
+                                    variable_names: List[str],
+                                    use_quantum: bool = True,
+                                    use_distributed: bool = True) -> Dict[str, Any]:
+        """Perform comprehensive causal discovery using all available methods.
+        
+        Args:
+            data: Input data matrix
+            variable_names: Variable names
+            use_quantum: Whether to use quantum acceleration
+            use_distributed: Whether to use distributed computing
+            
+        Returns:
+            Comprehensive discovery results
+        """
+        results = {
+            'timestamp': time.time(),
+            'data_characteristics': {},
+            'algorithm_results': {},
+            'ensemble_result': None,
+            'uncertainty_analysis': {},
+            'recommendations': {}
+        }
+        
+        # Extract data characteristics
+        data_chars = self.meta_learner.extract_data_characteristics(data)
+        results['data_characteristics'] = data_chars
+        
+        # Get algorithm recommendations
+        recommendations = self.meta_learner.get_algorithm_recommendations(data)
+        results['recommendations'] = recommendations
+        
+        logger.info(f"Starting comprehensive discovery with recommendations: {recommendations}")
+        
+        # Run selected algorithms
+        algorithms_to_run = [algo for algo, confidence in recommendations.items() 
+                           if confidence > 0.6]
+        
+        if not algorithms_to_run:
+            algorithms_to_run = ['pc', 'novel']  # Fallback
+        
+        # Classical algorithms
+        for algo in algorithms_to_run:
+            if algo in ['pc', 'ges', 'novel']:
+                try:
+                    if algo == 'pc':
+                        graph = self.adaptive_discovery._run_pc_algorithm(data, variable_names)
+                    elif algo == 'ges':
+                        graph = self.adaptive_discovery._run_ges_algorithm(data, variable_names)
+                    elif algo == 'novel':
+                        graph = self.adaptive_discovery._run_novel_discovery(data, variable_names)
+                    
+                    results['algorithm_results'][algo] = {
+                        'graph': graph,
+                        'edges': list(graph.edges()),
+                        'n_edges': graph.number_of_edges(),
+                        'success': True
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"Algorithm {algo} failed: {e}")
+                    results['algorithm_results'][algo] = {
+                        'success': False,
+                        'error': str(e)
+                    }
+        
+        # Quantum algorithm (if available and requested)
+        if use_quantum and self.quantum_available and 'quantum' in algorithms_to_run:
+            try:
+                quantum_result = await self.quantum_processor.quantum_causal_search(
+                    variable_names, data, max_parents=3
+                )
+                results['algorithm_results']['quantum'] = {
+                    'graph': quantum_result['causal_graph'],
+                    'edges': list(quantum_result['causal_graph'].edges()),
+                    'n_edges': quantum_result['causal_graph'].number_of_edges(),
+                    'quantum_confidence': quantum_result['quantum_confidence'],
+                    'execution_time': quantum_result['execution_time'],
+                    'success': True
+                }
+                
+            except Exception as e:
+                logger.error(f"Quantum algorithm failed: {e}")
+                results['algorithm_results']['quantum'] = {
+                    'success': False,
+                    'error': str(e)
+                }
+        
+        # Bootstrap uncertainty analysis
+        try:
+            consensus_graph, edge_probabilities = self.structure_learner.learn_with_uncertainty(
+                data, variable_names
+            )
+            
+            results['uncertainty_analysis'] = {
+                'consensus_graph': consensus_graph,
+                'edge_probabilities': {str(k): v for k, v in edge_probabilities.items()},
+                'high_confidence_edges': [
+                    str(edge) for edge, prob in edge_probabilities.items() if prob > 0.8
+                ],
+                'uncertain_edges': [
+                    str(edge) for edge, prob in edge_probabilities.items() 
+                    if 0.3 < prob < 0.7
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Uncertainty analysis failed: {e}")
+            results['uncertainty_analysis'] = {'error': str(e)}
+        
+        # Ensemble combination
+        successful_graphs = []
+        for algo_result in results['algorithm_results'].values():
+            if algo_result.get('success') and 'graph' in algo_result:
+                successful_graphs.append(algo_result['graph'])
+        
+        if successful_graphs:
+            ensemble_graph = self.adaptive_discovery._combine_results(
+                successful_graphs, variable_names
+            )
+            
+            results['ensemble_result'] = {
+                'graph': ensemble_graph,
+                'edges': list(ensemble_graph.edges()),
+                'n_edges': ensemble_graph.number_of_edges(),
+                'contributing_algorithms': len(successful_graphs)
+            }
+        
+        # Update meta-learner performance
+        for algo, result in results['algorithm_results'].items():
+            if result.get('success'):
+                # Simple performance metric based on edge count and data size
+                performance = min(1.0, result['n_edges'] / (len(variable_names) * 0.5))
+                self.meta_learner.update_performance(algo, performance, data_chars)
+        
+        logger.info("Comprehensive discovery completed")
+        return results
