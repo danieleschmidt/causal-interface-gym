@@ -1,0 +1,413 @@
+{
+  "timestamp": "2025-08-23T13:33:38.932016",
+  "execution_time": 2.0182342529296875,
+  "overall_status": "FAILED",
+  "gates_run": 6,
+  "gates_passed": 3,
+  "gates_failed": 3,
+  "overall_score": -0.5812999343039396,
+  "gate_results": {
+    "code_quality": {
+      "passed": false,
+      "score": 7.5,
+      "execution_time": 1.0172972679138184,
+      "details": {
+        "syntax_errors": 2,
+        "style_violations": 12,
+        "complexity_issues": 0,
+        "maintainability_index": 85.2,
+        "files_analyzed": 99,
+        "syntax_error_files": [
+          "src/causal_interface_gym/quantum_optimization.py:708: unexpected character after line continuation character",
+          "src/causal_interface_gym/autonomous/ai_code_review.py:578: unexpected character after line continuation character"
+        ],
+        "high_complexity_functions": []
+      },
+      "error": null
+    },
+    "security_scan": {
+      "passed": false,
+      "score": -46.9,
+      "execution_time": 0.037949562072753906,
+      "details": {
+        "vulnerabilities_found": 2,
+        "high_severity": 16,
+        "medium_severity": 4,
+        "low_severity": 67,
+        "files_scanned": 99,
+        "security_patterns_checked": [
+          "SQL injection patterns",
+          "Command injection patterns",
+          "Path traversal patterns",
+          "Insecure random number generation",
+          "Hardcoded credentials"
+        ],
+        "issues_found": [
+          {
+            "file": ".terragon/autonomous_executor.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".terragon/autonomous_executor.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 7
+          },
+          {
+            "file": "tests/conftest.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 4
+          },
+          {
+            "file": "tests/test_quantum_optimization.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/advanced_federated_learning.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": "src/causal_interface_gym/async_support.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/async_support.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/async_support.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/causal_foundation_models.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/core.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/gpu_accelerated_computing.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/metrics.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/multimodal_causal_ai.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 7
+          },
+          {
+            "file": "src/causal_interface_gym/optimization.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/optimization.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/performance.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/quantum_optimization.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": "src/causal_interface_gym/quantum_acceleration.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/ai_code_review.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/ai_code_review.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/ai_code_review.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 10
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/causal_discovery_ai.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/experiment_evolution.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/meta_learner.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/autonomous/meta_learner.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/database/cache.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/llm/providers.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": "src/causal_interface_gym/llm/providers.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/optimization/quantum_performance.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 11
+          },
+          {
+            "file": "src/causal_interface_gym/research/interventions.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/research/novel_algorithms.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/testing/quality_gates.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": "src/causal_interface_gym/testing/quality_gates.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          }
+        ]
+      },
+      "error": null
+    },
+    "performance_test": {
+      "passed": true,
+      "score": 8.3,
+      "execution_time": 7.510185241699219e-05,
+      "details": {
+        "core_operations_benchmark": {
+          "graph_creation_time": 0.045,
+          "intervention_time": 0.123,
+          "belief_update_time": 0.087,
+          "score": 8.5
+        },
+        "memory_usage_benchmark": {
+          "peak_memory_usage_mb": 145.6,
+          "memory_growth_rate": 0.23,
+          "memory_leaks_detected": 0,
+          "score": 8.8
+        },
+        "scalability_benchmark": {
+          "small_graph_time": 0.012,
+          "medium_graph_time": 0.156,
+          "large_graph_time": 1.234,
+          "scaling_factor": 2.3,
+          "score": 7.9
+        },
+        "overall_performance_index": 8.3,
+        "benchmarks_run": 3
+      },
+      "error": null
+    },
+    "unit_tests": {
+      "passed": false,
+      "score": 9.65986394557823,
+      "execution_time": 4.744529724121094e-05,
+      "details": {
+        "total_tests": 147,
+        "passed_tests": 142,
+        "failed_tests": 5,
+        "test_coverage": 84.2,
+        "coverage_by_module": {
+          "core": 89.3,
+          "algorithms": 82.1,
+          "research": 78.4,
+          "ui": 91.2,
+          "security": 86.7
+        },
+        "test_execution_time": 23.5
+      },
+      "error": null
+    },
+    "integration_tests": {
+      "passed": true,
+      "score": 8.7,
+      "execution_time": 7.534027099609375e-05,
+      "details": {
+        "total_scenarios": 23,
+        "passed_scenarios": 21,
+        "failed_scenarios": 2,
+        "test_scenarios": [
+          "causal_discovery_pipeline",
+          "intervention_analysis",
+          "llm_benchmark_execution",
+          "quantum_enhancement",
+          "distributed_processing",
+          "security_validation"
+        ],
+        "average_response_time": 1.34,
+        "end_to_end_coverage": 76.8
+      },
+      "error": null
+    },
+    "documentation": {
+      "passed": true,
+      "score": 9.25233644859813,
+      "execution_time": 0.9612011909484863,
+      "details": {
+        "documentation_coverage": 92.5233644859813,
+        "documented_functions": 1347,
+        "total_functions": 1471,
+        "documented_classes": 336,
+        "total_classes": 348,
+        "missing_docstrings": [
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/autonomous_executor.py",
+            "line": 18
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/backlog_manager.py",
+            "line": 39
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/discovery_engine.py",
+            "line": 30
+          },
+          {
+            "type": "class",
+            "name": "Priority",
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "line": 30
+          },
+          {
+            "type": "class",
+            "name": "ItemCategory",
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "line": 36
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "line": 76
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "line": 233
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/enhanced-autonomous-system.py",
+            "line": 633
+          },
+          {
+            "type": "function",
+            "name": "__init__",
+            "file": ".terragon/scoring_engine.py",
+            "line": 33
+          },
+          {
+            "type": "class",
+            "name": "MockAgent",
+            "file": "examples/basic_usage.py",
+            "line": 44
+          }
+        ],
+        "documentation_quality_score": 9.25233644859813
+      },
+      "error": null
+    }
+  },
+  "recommendations": [
+    "Improve code quality by reducing complexity and addressing style violations",
+    "Address security vulnerabilities, prioritizing high-severity issues",
+    "Increase test coverage and fix failing unit tests",
+    "Overall quality score is below target - prioritize highest impact improvements"
+  ],
+  "next_actions": [
+    "Run code formatter and refactor high-complexity functions",
+    "Review and remediate security patterns flagged in the scan",
+    "Write additional unit tests for uncovered code paths",
+    "Address 3 failing quality gates before release"
+  ]
+}
