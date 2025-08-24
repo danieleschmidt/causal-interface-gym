@@ -255,7 +255,12 @@ class AutoMetaLearner:
     def _compute_context_similarity(self, context1: Dict[str, Any], context2_str: str) -> float:
         """Compute similarity between contexts."""
         try:
-            context2 = eval(context2_str) if isinstance(context2_str, str) else context2_str
+            # Safe parsing using ast.literal_eval instead of eval
+            import ast
+            try:
+                context2 = ast.literal_eval(context2_str) if isinstance(context2_str, str) else context2_str
+            except (ValueError, SyntaxError):
+                return 0.0
             if not isinstance(context2, dict):
                 return 0.0
                 

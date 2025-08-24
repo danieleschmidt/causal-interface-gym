@@ -575,7 +575,7 @@ class AICodeReviewer:
                     if all(field in finding_data for field in required_fields):
                         
                         finding = CodeReviewFinding(
-                            id=f"ai_{hashlib.md5(f'{file_path}:{finding_data[\"line_number\"]}:{finding_data[\"title\"]}'.encode()).hexdigest()[:8]}",
+                            id=f"ai_{hashlib.md5(f'{file_path}:{finding_data['line_number']}:{finding_data['title']}'.encode()).hexdigest()[:8]}",
                             file_path=file_path,
                             line_number=finding_data['line_number'],
                             category=ReviewCategory(finding_data['category']),

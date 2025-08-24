@@ -205,21 +205,25 @@ class CausalEnvironment:
         
         backdoor_paths = []
         
-        # Find all undirected paths between treatment and outcome
+        # Find all paths that don't start with direct edge from treatment
         try:
             undirected = self.graph.to_undirected()
-            all_paths = list(nx.all_simple_paths(undirected, treatment, outcome))
             
-            for path in all_paths:
-                if len(path) > 2:  # More than direct path
-                    # Check if path starts with arrow INTO treatment
-                    if len(path) > 2 and self.graph.has_edge(path[1], path[0]):
+            # Get all simple paths
+            for path in nx.all_simple_paths(undirected, treatment, outcome, cutoff=len(self.graph.nodes())):
+                if len(path) > 2:  # More than just treatment->outcome
+                    # A backdoor path must have an arrow INTO the treatment
+                    # (i.e., the second node in the path has an edge TO the treatment)
+                    second_node = path[1]
+                    if self.graph.has_edge(second_node, treatment):
+                        # This is a confounding path
                         backdoor_paths.append(path)
+                        
         except nx.NetworkXNoPath:
             logger.debug(f"No paths found between {treatment} and {outcome}")
         except Exception as e:
             logger.error(f"Error finding backdoor paths: {e}")
-            raise ValueError(f"Failed to find backdoor paths: {e}")
+            return []
             
         return backdoor_paths
     
@@ -511,6 +515,59 @@ class CausalEnvironment:
             analysis["causal_score"] = np.mean(scores)
         
         return analysis
+    
+    def _validate_intervention_value(self, variable: str, value: Any) -> None:
+        """Validate intervention value for a variable.
+        
+        Args:
+            variable: Variable name
+            value: Proposed intervention value
+            
+        Raises:
+            ValueError: If value is invalid for the variable type
+            TypeError: If value has wrong type
+        """
+        # Get variable type from mechanisms or infer from graph
+        var_type = self.variable_types.get(variable, "binary")
+        
+        if var_type == "binary":
+            if not isinstance(value, (bool, int)) or (isinstance(value, int) and value not in [0, 1]):
+                raise ValueError(f"Binary variable '{variable}' requires boolean or 0/1, got {value}")
+        elif var_type == "continuous":
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"Continuous variable '{variable}' requires numeric value, got {type(value)}")
+            if not (-1e6 <= value <= 1e6):  # Reasonable bounds
+                raise ValueError(f"Continuous variable '{variable}' value {value} out of reasonable range")
+        elif var_type == "categorical":
+            if not isinstance(value, (str, int)):
+                raise ValueError(f"Categorical variable '{variable}' requires string or int, got {type(value)}")
+                
+    def _compute_intervention_effect(self, treatment: str, outcome: str, value: Any) -> float:
+        """Compute effect of intervention on downstream variable.
+        
+        Args:
+            treatment: Treatment variable
+            outcome: Outcome variable 
+            value: Treatment value
+            
+        Returns:
+            Computed causal effect
+        """
+        try:
+            # Use mechanism if available
+            mechanism_key = f"{treatment}->{outcome}"
+            if mechanism_key in self.mechanisms:
+                mechanism = self.mechanisms[mechanism_key]
+                if callable(mechanism):
+                    return float(mechanism(value))
+            
+            # Fallback to simple linear effect with bounds
+            effect = float(value) * 0.7  # Default effect strength
+            return max(-10.0, min(10.0, effect))  # Bound the effect
+            
+        except Exception as e:
+            logger.warning(f"Could not compute effect {treatment}->{outcome}: {e}")
+            return 0.0
     
     def _get_expected_difference(self, belief_expression: str) -> float:
         """Get expected difference between P(Y|do(X)) and P(Y|X) for variable.

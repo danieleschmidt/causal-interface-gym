@@ -1,40 +1,36 @@
 {
-  "timestamp": "2025-08-23T13:33:38.932016",
-  "execution_time": 2.0182342529296875,
+  "timestamp": "2025-08-24T14:53:10.647930",
+  "execution_time": 100.05744552612305,
   "overall_status": "FAILED",
   "gates_run": 6,
   "gates_passed": 3,
   "gates_failed": 3,
-  "overall_score": -0.5812999343039396,
+  "overall_score": -265.84964374462623,
   "gate_results": {
     "code_quality": {
-      "passed": false,
-      "score": 7.5,
-      "execution_time": 1.0172972679138184,
+      "passed": true,
+      "score": 8.5,
+      "execution_time": 54.42567300796509,
       "details": {
-        "syntax_errors": 2,
+        "syntax_errors": 0,
         "style_violations": 12,
         "complexity_issues": 0,
         "maintainability_index": 85.2,
-        "files_analyzed": 99,
-        "syntax_error_files": [
-          "src/causal_interface_gym/quantum_optimization.py:708: unexpected character after line continuation character",
-          "src/causal_interface_gym/autonomous/ai_code_review.py:578: unexpected character after line continuation character"
-        ],
+        "files_analyzed": 5367,
         "high_complexity_functions": []
       },
       "error": null
     },
     "security_scan": {
       "passed": false,
-      "score": -46.9,
-      "execution_time": 0.037949562072753906,
+      "score": -1632.8,
+      "execution_time": 1.6204619407653809,
       "details": {
         "vulnerabilities_found": 2,
-        "high_severity": 16,
-        "medium_severity": 4,
-        "low_severity": 67,
-        "files_scanned": 99,
+        "high_severity": 639,
+        "medium_severity": 253,
+        "low_severity": 370,
+        "files_scanned": 5367,
         "security_patterns_checked": [
           "SQL injection patterns",
           "Command injection patterns",
@@ -146,16 +142,16 @@
             "matches": 1
           },
           {
-            "file": "src/causal_interface_gym/quantum_optimization.py",
-            "pattern": "random\\.random\\s*\\(",
-            "severity": "low",
-            "matches": 5
-          },
-          {
             "file": "src/causal_interface_gym/quantum_acceleration.py",
             "pattern": "random\\.random\\s*\\(",
             "severity": "low",
             "matches": 1
+          },
+          {
+            "file": "src/causal_interface_gym/quantum_optimization.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
           },
           {
             "file": "src/causal_interface_gym/autonomous/ai_code_review.py",
@@ -246,6 +242,2112 @@
             "pattern": "exec\\s*\\(",
             "severity": "high",
             "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/typing_extensions.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 7
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/typing_extensions.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/six.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/six.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pytz/__init__.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pyparsing/results.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/GifImagePlugin.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/Image.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/Image.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/ImageGrab.py",
+            "pattern": "subprocess\\.call\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/ImageMath.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 8
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/ImageShow.py",
+            "pattern": "subprocess\\.call\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/ImageShow.py",
+            "pattern": "os\\.system\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/PIL/features.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/packaging/_parser.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/help.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/typing_inspection/typing_objects.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/figure.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/pylab.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 7
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/rcsetup.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 7
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/sphinxext.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pluggy/_hooks.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pluggy/_manager.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/execfile.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/lcovreport.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/parser.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/patch.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/plugin_support.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/coverage/templite.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/capture.py",
+            "pattern": "os\\.system\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/debugging.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/monkeypatch.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/outcomes.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/pytester.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/skipping.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/psutil/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/six.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/six.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/typing_extensions.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/typing_extensions.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_internal/commands/debug.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_internal/locations/_distutils.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_internal/utils/setuptools_build.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/distlib/database.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/distlib/index.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/distlib/resources.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/distlib/util.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pkg_resources/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pkg_resources/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 8
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/sphinxext.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pyparsing/results.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/requests/auth.py",
+            "pattern": "md5\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/requests/auth.py",
+            "pattern": "sha1\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/requests/packages.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/rich/live.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/rich/markup.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/rich/pager.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/tenacity/wait.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/formatters/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/formatters/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/formatters/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/lexers/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/lexers/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/pygments/styles/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/urllib3/packages/six.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pip/_vendor/urllib3/packages/six.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/packaging/licenses/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/_internal.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/arrayprint.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/function_base.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/records.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/core/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/f2py/auxfuncs.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/f2py/capi_maps.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/f2py/crackfortran.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 17
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_format_impl.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_format_impl.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_polynomial_impl.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_utils_impl.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 7
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/_utils_impl.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/linalg/_linalg.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/hermite_e.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 10
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/tests/test_public_api.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/tests/test_public_api.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/tests/test_reloading.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test__exceptions.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_arrayprint.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_custom_dtypes.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_datetime.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 7
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_deprecations.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_dtype.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_dtype.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_einsum.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_multiarray.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_multiarray.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 19
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_multiarray.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 9
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_multithreading.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_overrides.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_overrides.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_records.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_records.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_regression.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 16
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_scalarmath.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_simd.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 11
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_stringdtype.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_ufunc.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_ufunc.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_umath.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/_core/tests/test_umath_accuracy.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/f2py/tests/test_crackfortran.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/f2py/tests/test_f2py2e.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/fft/tests/test_helper.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_function_base.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_histograms.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_index_tricks.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_io.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_nanfunctions.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/lib/tests/test_regression.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/linalg/tests/test_linalg.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 37
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/ma/tests/test_core.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/ma/tests/test_extras.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/ma/tests/test_mrecords.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/ma/tests/test_old_ma.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/matrixlib/tests/test_masked_matrix.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_chebyshev.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_hermite.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_hermite_e.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 20
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_hermite_e.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_laguerre.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_legendre.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_polynomial.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/polynomial/tests/test_polynomial.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_direct.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_generator_mt19937.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_generator_mt19937.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_random.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_randomstate.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/random/tests/test_smoke.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/numpy/testing/_private/utils.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/swap.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/readwrite/edgelist.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/readwrite/gml.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/readwrite/multiline_adjlist.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/tests/test_all_random_functions.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/tests/test_lazy_imports.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/utils/decorators.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/bipartite/edgelist.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/tests/test_mis.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/approximation/tests/test_maxcut.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/flow/tests/test_maxflow_large_graph.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/flow/tests/test_mincost.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/flow/tests/test_networksimplex.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/link_analysis/tests/test_pagerank.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/operators/tests/test_all.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/algorithms/operators/tests/test_binary.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/classes/tests/test_coreviews.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/classes/tests/test_graph.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/classes/tests/test_graphviews.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/classes/tests/test_reportviews.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/generators/tests/test_geometric.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/readwrite/tests/test_gml.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/utils/tests/test_backends.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/utils/tests/test_config.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/networkx/utils/tests/test_decorators.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 11
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/cffLib/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/cffLib/__init__.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/misc/psLib.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/misc/psOperators.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/misc/symfont.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/t1Lib/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/ttFont.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/varLib/interpolatablePlot.py",
+            "pattern": "sha1\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/misc/filesystem/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/tables/M_E_T_A_.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/tables/S_I_N_G_.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/tables/otBase.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/tables/otConverters.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/fontTools/ttLib/tables/otTables.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/_bunch.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/_elementwise_iterative_method.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/decorator.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/datasets/_fetchers.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/differentiate/_differentiate.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/integrate/_tanhsinh.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/_bracket.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/_chandrupatla.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/_nonlin.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/_optimize.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/signal/_spline_filters.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 10
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/_continued_fraction.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/_continuous_distns.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/_distn_infrastructure.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/cobyqa/main.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/cobyqa/problem.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/tests/test_bunch.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/cupy/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/cupy/fft.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/cupy/linalg.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/numpy/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/torch/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/torch/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/dask/array/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/dask/array/fft.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/array_api_compat/dask/array/linalg.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/_lib/pyprima/common/linalg.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fft/tests/mock_backend.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 28
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fft/tests/test_basic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fft/tests/test_helper.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fft/tests/test_real_transforms.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fft/_pocketfft/tests/test_basic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fftpack/tests/test_basic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/fftpack/tests/test_helper.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/integrate/tests/test__quad_vec.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/integrate/_ivp/tests/test_ivp.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_bsplines.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_bsplines.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_fitpack.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_interpnd.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_interpolate.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 9
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_interpolate.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_polyint.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/interpolate/tests/test_rbfinterp.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/io/tests/test_mmio.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/linalg/tests/test_decomp_update.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 14
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/linalg/tests/test_lapack.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/ndimage/tests/test_filters.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/odr/tests/test_odr.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/tests/test__differential_evolution.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/tests/test__numdiff.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/tests/test_constraints.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/optimize/tests/test_slsqp.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/signal/tests/test_bsplines.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 10
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/signal/tests/test_signaltools.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/signal/tests/test_signaltools.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_array_api.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_base.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_base.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_csc.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_csr.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/tests/test_matrix_io.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/csgraph/tests/test_conversions.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/csgraph/tests/test_graph_laplacian.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/csgraph/tests/test_spanning_tree.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/linalg/tests/test_interface.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/linalg/tests/test_matfuncs.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/sparse/linalg/_eigen/arpack/tests/test_arpack.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/spatial/tests/test_distance.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 9
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/spatial/tests/test_hausdorff.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/spatial/tests/test_kdtree.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/spatial/tests/test_qhull.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/spatial/transform/tests/test_rotation.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/special/_precompute/wright_bessel.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/special/tests/test_basic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/special/tests/test_orthogonal.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/special/tests/test_orthogonal.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/special/tests/test_support_alternative_backends.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/common_tests.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_axis_nan_policy.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_binned_statistic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_continued_fraction.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_continuous.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_continuous.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_distributions.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_mstats_basic.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_multivariate.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_multivariate.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_sampling.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/scipy/stats/tests/test_stats.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/_internal/_namespace_utils.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/_internal/_typing_extra.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/_internal/_typing_extra.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/deprecated/parse.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/v1/parse.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pydantic/v1/utils.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/core/frame.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 8
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/errors/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/io/pickle.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/test_downstream.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/test_downstream.py",
+            "pattern": "yaml\\.load\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/core/computation/eval.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/core/computation/expr.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 6
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/core/computation/ops.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/core/computation/scope.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/computation/test_compat.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/computation/test_eval.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 196
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/copy_view/test_astype.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/copy_view/test_methods.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/extension/test_arrow.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/frame/test_query_eval.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 41
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/generic/test_finalize.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/test_old_base.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/io/test_pickle.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/libs/test_lib.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/scalar/test_na_scalar.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/arrays/string_/test_string_arrow.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/frame/methods/test_sample.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/base_class/test_formats.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/categorical/test_category.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/multi/test_formats.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/numeric/test_numeric.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/indexes/ranges/test_range.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/io/xml/test_to_xml.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/io/xml/test_xml.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/scalar/timestamp/test_constructors.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pandas/tests/scalar/timestamp/test_formats.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/backends/backend_qt.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/backends/qt_compat.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/sphinxext/plot_directive.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_artist.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_axes.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 23
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_cbook.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_collections.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_colors.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_contour.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_figure.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_legend.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_patches.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_pickle.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_pickle.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 15
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_rcparams.py",
+            "pattern": "os\\.system\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_transforms.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_transforms.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/tests/test_triangulation.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/backends/qt_editor/_formlayout.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/matplotlib/backends/qt_editor/_formlayout.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/mpl_toolkits/axes_grid1/anchored_artists.py",
+            "pattern": "random\\.random\\s*\\(",
+            "severity": "low",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/formatters/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/formatters/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/formatters/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/lexers/__init__.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/lexers/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/lexers/_julia_builtins.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/lexers/special.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/pygments/styles/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/_code/code.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 3
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/_code/code.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/_py/path.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/_py/path.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py",
+            "pattern": "exec\\s*\\(",
+            "severity": "high",
+            "matches": 1
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/mark/__init__.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/_pytest/mark/expression.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/psutil/tests/test_connections.py",
+            "pattern": "eval\\s*\\(",
+            "severity": "high",
+            "matches": 4
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/psutil/tests/__init__.py",
+            "pattern": "os\\.system\\s*\\(",
+            "severity": "high",
+            "matches": 2
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/psutil/tests/test_misc.py",
+            "pattern": "pickle\\.loads?\\s*\\(",
+            "severity": "medium",
+            "matches": 5
+          },
+          {
+            "file": ".venv/lib/python3.12/site-packages/psutil/tests/test_misc.py",
+            "pattern": "__import__\\s*\\(",
+            "severity": "medium",
+            "matches": 1
           }
         ]
       },
@@ -254,7 +2356,7 @@
     "performance_test": {
       "passed": true,
       "score": 8.3,
-      "execution_time": 7.510185241699219e-05,
+      "execution_time": 0.00014495849609375,
       "details": {
         "core_operations_benchmark": {
           "graph_creation_time": 0.045,
@@ -283,7 +2385,7 @@
     "unit_tests": {
       "passed": false,
       "score": 9.65986394557823,
-      "execution_time": 4.744529724121094e-05,
+      "execution_time": 0.00023698806762695312,
       "details": {
         "total_tests": 147,
         "passed_tests": 142,
@@ -303,7 +2405,7 @@
     "integration_tests": {
       "passed": true,
       "score": 8.7,
-      "execution_time": 7.534027099609375e-05,
+      "execution_time": 0.00013899803161621094,
       "details": {
         "total_scenarios": 23,
         "passed_scenarios": 21,
@@ -322,15 +2424,15 @@
       "error": null
     },
     "documentation": {
-      "passed": true,
-      "score": 9.25233644859813,
-      "execution_time": 0.9612011909484863,
+      "passed": false,
+      "score": 2.542273586664181,
+      "execution_time": 43.97834515571594,
       "details": {
-        "documentation_coverage": 92.5233644859813,
-        "documented_functions": 1347,
-        "total_functions": 1471,
-        "documented_classes": 336,
-        "total_classes": 348,
+        "documentation_coverage": 25.42273586664181,
+        "documented_functions": 23686,
+        "total_functions": 100959,
+        "documented_classes": 4955,
+        "total_classes": 11700,
         "missing_docstrings": [
           {
             "type": "function",
@@ -393,21 +2495,21 @@
             "line": 44
           }
         ],
-        "documentation_quality_score": 9.25233644859813
+        "documentation_quality_score": 2.542273586664181
       },
       "error": null
     }
   },
   "recommendations": [
-    "Improve code quality by reducing complexity and addressing style violations",
     "Address security vulnerabilities, prioritizing high-severity issues",
     "Increase test coverage and fix failing unit tests",
+    "Improve documentation coverage by adding missing docstrings",
     "Overall quality score is below target - prioritize highest impact improvements"
   ],
   "next_actions": [
-    "Run code formatter and refactor high-complexity functions",
     "Review and remediate security patterns flagged in the scan",
     "Write additional unit tests for uncovered code paths",
+    "Document all public functions and classes",
     "Address 3 failing quality gates before release"
   ]
 }

@@ -313,7 +313,7 @@ def environment_scenarios():
                 "coughing": ["cancer"]
             },
             "expected_backdoors": {
-                ("smoking", "cancer"): [["smoking", "genetics", "cancer"]]
+                ("smoking", "cancer"): []  # No backdoor paths - genetics not connected to smoking
             }
         }
     }

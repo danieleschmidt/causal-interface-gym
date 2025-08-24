@@ -12,6 +12,28 @@ from concurrent.futures import ThreadPoolExecutor
 import multiprocessing as mp
 from abc import ABC, abstractmethod
 
+# Quantum computing imports with fallbacks
+try:
+    from qiskit import QuantumCircuit
+    from qiskit.circuit import Parameter
+    from qiskit.quantum_info import PauliSumOp, SparsePauliOp
+    QISKIT_AVAILABLE = True
+except ImportError:
+    # Fallback classes for when Qiskit is not available
+    class QuantumCircuit:
+        def __init__(self, *args, **kwargs):
+            pass
+    class Parameter:
+        def __init__(self, *args, **kwargs):
+            pass
+    class PauliSumOp:
+        def __init__(self, *args, **kwargs):
+            pass
+    class SparsePauliOp:
+        def __init__(self, *args, **kwargs):
+            pass
+    QISKIT_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class OptimizationStrategy(Enum):
@@ -705,7 +727,7 @@ class QuantumOptimizationEngine:
         return circuit
     
     def _decode_vqe_solution(self, optimal_params: Dict, n_vars: int) -> np.ndarray:
-        \"\"\"Decode VQE solution to causal graph adjacency matrix.\"\"\"
+        """Decode VQE solution to causal graph adjacency matrix."""
         # Create adjacency matrix from optimal parameters
         causal_graph = np.zeros((n_vars, n_vars))
         
@@ -729,7 +751,7 @@ class QuantumOptimizationEngine:
         return causal_graph
     
     async def _simulated_vqe_causal_discovery(self, causal_data: Dict[str, Any], n_vars: int) -> Dict[str, Any]:
-        \"\"\"Simulate VQE for causal discovery.\"\"\"
+        """Simulate VQE for causal discovery."""
         # Simulate VQE optimization process
         max_iterations = min(100, self.config.max_iterations)
         
@@ -769,7 +791,7 @@ class QuantumOptimizationEngine:
         }
     
     def _simulate_vqe_energy(self, params: np.ndarray, causal_data: Dict[str, Any], n_vars: int) -> float:
-        \"\"\"Simulate VQE energy calculation.\"\"\"
+        """Simulate VQE energy calculation."""
         # Simple energy function based on parameters
         data_matrix = causal_data.get('data_matrix', np.random.randn(100, n_vars))
         correlations = np.corrcoef(data_matrix.T)
@@ -784,7 +806,7 @@ class QuantumOptimizationEngine:
         return data_fit + sparsity_penalty
     
     def _decode_simulated_vqe(self, params: np.ndarray, n_vars: int) -> np.ndarray:
-        \"\"\"Decode simulated VQE parameters to causal graph.\"\"\"
+        """Decode simulated VQE parameters to causal graph."""
         causal_graph = np.zeros((n_vars, n_vars))
         
         param_index = 0
@@ -803,7 +825,7 @@ class QuantumOptimizationEngine:
         return causal_graph
     
     async def _adiabatic_quantum_causal_discovery(self, causal_data: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Use adiabatic quantum computing for causal discovery.\"\"\"
+        """Use adiabatic quantum computing for causal discovery."""
         # Simplified adiabatic quantum computation simulation
         variables = causal_data.get('variables', [])
         n_vars = len(variables) if variables else 10
@@ -834,7 +856,7 @@ class QuantumOptimizationEngine:
         }
     
     def _create_classical_causal_hamiltonian(self, causal_data: Dict[str, Any], n_vars: int) -> np.ndarray:
-        \"\"\"Create classical Hamiltonian matrix for causal discovery.\"\"\"
+        """Create classical Hamiltonian matrix for causal discovery."""
         # Simplified Hamiltonian for small systems
         dim = 2**min(n_vars, 10)  # Limit exponential growth
         H = np.random.random((dim, dim))
@@ -843,7 +865,7 @@ class QuantumOptimizationEngine:
     
     async def _simulate_adiabatic_evolution(self, H_initial: np.ndarray, H_final: np.ndarray, 
                                          evolution_time: float, time_steps: int) -> np.ndarray:
-        \"\"\"Simulate adiabatic quantum evolution.\"\"\"
+        """Simulate adiabatic quantum evolution."""
         dt = evolution_time / time_steps
         
         # Initial ground state (assume |0...0>)
@@ -868,7 +890,7 @@ class QuantumOptimizationEngine:
         return state
     
     def _decode_quantum_state(self, state: np.ndarray, n_vars: int) -> np.ndarray:
-        \"\"\"Decode quantum state to causal graph.\"\"\"
+        """Decode quantum state to causal graph."""
         # Measure quantum state to get classical outcome
         probabilities = np.abs(state)**2
         
@@ -893,7 +915,7 @@ class QuantumOptimizationEngine:
     
     async def _hybrid_causal_discovery(self, causal_data: Dict[str, Any], 
                                      strategy: OptimizationStrategy) -> Dict[str, Any]:
-        \"\"\"Perform hybrid classical-quantum causal discovery.\"\"\"
+        """Perform hybrid classical-quantum causal discovery."""
         # Decompose problem into quantum and classical parts
         quantum_subproblems = await self._decompose_for_quantum(causal_data)
         classical_subproblems = await self._decompose_for_classical(causal_data)
@@ -919,7 +941,7 @@ class QuantumOptimizationEngine:
         return merged_result
     
     async def _decompose_for_quantum(self, causal_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        \"\"\"Decompose problem for quantum processing.\"\"\"
+        """Decompose problem for quantum processing."""
         variables = causal_data.get('variables', [])
         n_vars = len(variables) if variables else 10
         
@@ -941,7 +963,7 @@ class QuantumOptimizationEngine:
         return subproblems
     
     async def _decompose_for_classical(self, causal_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        \"\"\"Decompose problem for classical processing.\"\"\"
+        """Decompose problem for classical processing."""
         # Global structure optimization and constraint satisfaction
         subproblems = [
             {
@@ -959,14 +981,14 @@ class QuantumOptimizationEngine:
         return subproblems
     
     async def _solve_quantum_subproblem(self, subproblem: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Solve subproblem using quantum computing.\"\"\"
+        """Solve subproblem using quantum computing."""
         # Use variational quantum approach for subproblems
         result = await self._variational_quantum_causal_discovery(subproblem)
         result['solver_type'] = 'quantum'
         return result
     
     async def _solve_classical_subproblem(self, subproblem: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Solve subproblem using classical optimization.\"\"\"
+        """Solve subproblem using classical optimization."""
         problem_type = subproblem.get('problem_type', 'unknown')
         
         if problem_type == 'global_structure_optimization':
@@ -983,7 +1005,7 @@ class QuantumOptimizationEngine:
         return result
     
     async def _classical_global_optimization(self, subproblem: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Perform classical global optimization.\"\"\"
+        """Perform classical global optimization."""
         causal_data = subproblem.get('causal_data', {})
         variables = causal_data.get('variables', [])
         n_vars = len(variables) if variables else 10
@@ -1010,7 +1032,7 @@ class QuantumOptimizationEngine:
         }
     
     async def _classical_constraint_satisfaction(self, subproblem: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Perform classical constraint satisfaction.\"\"\"
+        """Perform classical constraint satisfaction."""
         causal_data = subproblem.get('causal_data', {})
         
         # Apply acyclicity and other causal constraints
@@ -1029,7 +1051,7 @@ class QuantumOptimizationEngine:
     async def _merge_hybrid_results(self, quantum_results: List[Dict[str, Any]], 
                                   classical_results: List[Dict[str, Any]], 
                                   causal_data: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Merge quantum and classical results.\"\"\"
+        """Merge quantum and classical results."""
         variables = causal_data.get('variables', [])
         n_vars = len(variables) if variables else 10
         
@@ -1066,7 +1088,7 @@ class QuantumOptimizationEngine:
         }
     
     def _enforce_acyclicity(self, adj_matrix: np.ndarray) -> np.ndarray:
-        \"\"\"Enforce acyclicity constraint on adjacency matrix.\"\"\"
+        """Enforce acyclicity constraint on adjacency matrix."""
         import networkx as nx
         
         try:
@@ -1086,11 +1108,11 @@ class QuantumOptimizationEngine:
             return adj_matrix
             
         except Exception as e:
-            logger.error(f\"Failed to enforce acyclicity: {e}\")
+            logger.error(f"Failed to enforce acyclicity: {e}")
             return adj_matrix
     
     def _decode_quantum_solution(self, result: Dict[str, Any], n_vars: int) -> np.ndarray:
-        \"\"\"Decode quantum solution to causal graph adjacency matrix.\"\"\"
+        """Decode quantum solution to causal graph adjacency matrix."""
         solution = result.get('solution', {})
         
         # Convert solution dictionary to adjacency matrix
@@ -1108,7 +1130,7 @@ class QuantumOptimizationEngine:
         return adj_matrix
     
     def _calculate_solution_quality(self, causal_graph: np.ndarray, causal_data: Dict[str, Any]) -> float:
-        \"\"\"Calculate quality score for causal graph solution.\"\"\"
+        """Calculate quality score for causal graph solution."""
         if causal_graph.size == 0:
             return 0.0
         
@@ -1131,7 +1153,7 @@ class QuantumOptimizationEngine:
         return max(0.0, min(1.0, quality_score))
     
     def _is_acyclic(self, adj_matrix: np.ndarray) -> bool:
-        \"\"\"Check if adjacency matrix represents a DAG.\"\"\"
+        """Check if adjacency matrix represents a DAG."""
         try:
             import networkx as nx
             G = nx.from_numpy_array(adj_matrix, create_using=nx.DiGraph)
@@ -1141,7 +1163,7 @@ class QuantumOptimizationEngine:
     
     async def _validate_optimization_result(self, result: Dict[str, Any], 
                                           causal_data: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Validate and post-process optimization results.\"\"\"
+        """Validate and post-process optimization results."""
         validated_result = result.copy()
         
         # Validate causal graph
@@ -1166,7 +1188,7 @@ class QuantumOptimizationEngine:
     
     async def _profile_optimization_performance(self, start_time: float, 
                                               result: Dict[str, Any]) -> PerformanceProfile:
-        \"\"\"Profile optimization performance.\"\"\"
+        """Profile optimization performance."""
         execution_time = time.time() - start_time
         
         # Simulate performance metrics (in real implementation, would use actual monitoring)
@@ -1196,7 +1218,7 @@ class QuantumOptimizationEngine:
         )
     
     async def _classical_causal_discovery_fallback(self, causal_data: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"Classical fallback for causal discovery.\"\"\"
+        """Classical fallback for causal discovery."""
         variables = causal_data.get('variables', [])
         n_vars = len(variables) if variables else 10
         
@@ -1225,7 +1247,7 @@ class QuantumOptimizationEngine:
         }
     
     def get_optimization_stats(self) -> Dict[str, Any]:
-        \"\"\"Get comprehensive optimization statistics.\"\"\"
+        """Get comprehensive optimization statistics."""
         if not self.optimization_history:
             return {'status': 'no_optimizations_performed'}
         
@@ -1256,7 +1278,7 @@ class QuantumOptimizationEngine:
         return stats
     
     async def benchmark_optimization_performance(self, test_sizes: List[int] = None) -> Dict[str, Any]:
-        \"\"\"Benchmark optimization performance across different problem sizes.\"\"\"
+        """Benchmark optimization performance across different problem sizes."""
         if test_sizes is None:
             test_sizes = [5, 10, 20, 50, 100]
         

@@ -1,9 +1,9 @@
 # Quality Gate Report ❌
 
-**Generated**: 2025-08-23T13:33:38.932016  
+**Generated**: 2025-08-24T14:53:10.647930  
 **Overall Status**: FAILED  
-**Overall Score**: -0.6/10.0  
-**Execution Time**: 2.02 seconds
+**Overall Score**: -265.8/10.0  
+**Execution Time**: 100.06 seconds
 
 ## Summary
 
@@ -14,31 +14,30 @@
 ## Quality Gate Results
 
 
-### Code Quality ❌ FAILED
+### Code Quality ✅ PASSED
 
-**Score**: 7.5/10.0  
-**Execution Time**: 1.02s
+**Score**: 8.5/10.0  
+**Execution Time**: 54.43s
 
 **Details**:
-- Syntax Errors: 2
+- Syntax Errors: 0
 - Style Violations: 12
 - Complexity Issues: 0
 - Maintainability Index: 85.2
-- Files Analyzed: 99
-- Syntax Error Files: src/causal_interface_gym/quantum_optimization.py:708: unexpected character after line continuation character, src/causal_interface_gym/autonomous/ai_code_review.py:578: unexpected character after line continuation character
+- Files Analyzed: 5367
 - High Complexity Functions: 
 
 ### Security Scan ❌ FAILED
 
-**Score**: -46.9/10.0  
-**Execution Time**: 0.04s
+**Score**: -1632.8/10.0  
+**Execution Time**: 1.62s
 
 **Details**:
 - Vulnerabilities Found: 2
-- High Severity: 16
-- Medium Severity: 4
-- Low Severity: 67
-- Files Scanned: 99
+- High Severity: 639
+- Medium Severity: 253
+- Low Severity: 370
+- Files Scanned: 5367
 - Security Patterns Checked: SQL injection patterns, Command injection patterns, Path traversal patterns, Insecure random number generation, Hardcoded credentials
 
 ### Performance Test ✅ PASSED
@@ -74,31 +73,31 @@
 - Average Response Time: 1.34
 - End To End Coverage: 76.8
 
-### Documentation ✅ PASSED
+### Documentation ❌ FAILED
 
-**Score**: 9.3/10.0  
-**Execution Time**: 0.96s
+**Score**: 2.5/10.0  
+**Execution Time**: 43.98s
 
 **Details**:
-- Documentation Coverage: 92.5233644859813
-- Documented Functions: 1347
-- Total Functions: 1471
-- Documented Classes: 336
-- Total Classes: 348
-- Documentation Quality Score: 9.25233644859813
+- Documentation Coverage: 25.42273586664181
+- Documented Functions: 23686
+- Total Functions: 100959
+- Documented Classes: 4955
+- Total Classes: 11700
+- Documentation Quality Score: 2.542273586664181
 
 ## Recommendations
 
-- Improve code quality by reducing complexity and addressing style violations
 - Address security vulnerabilities, prioritizing high-severity issues
 - Increase test coverage and fix failing unit tests
+- Improve documentation coverage by adding missing docstrings
 - Overall quality score is below target - prioritize highest impact improvements
 
 ## Next Actions
 
-1. Run code formatter and refactor high-complexity functions
 1. Review and remediate security patterns flagged in the scan
 1. Write additional unit tests for uncovered code paths
+1. Document all public functions and classes
 1. Address 3 failing quality gates before release
 
 ---
