@@ -27,11 +27,14 @@ class ExperimentModel:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ExperimentModel':
         """Create from dictionary (from database)."""
-        if isinstance(data['causal_graph'], str):
-            data['causal_graph'] = json.loads(data['causal_graph'])
-        if isinstance(data['metadata'], str):
-            data['metadata'] = json.loads(data['metadata'])
-        return cls(**data)
+        # Remove database-specific fields that aren't in the model
+        clean_data = {k: v for k, v in data.items() if k not in ['id']}
+        
+        if isinstance(clean_data['causal_graph'], str):
+            clean_data['causal_graph'] = json.loads(clean_data['causal_graph'])
+        if isinstance(clean_data['metadata'], str):
+            clean_data['metadata'] = json.loads(clean_data['metadata'])
+        return cls(**clean_data)
 
 
 @dataclass
@@ -55,9 +58,12 @@ class BeliefMeasurement:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'BeliefMeasurement':
         """Create from dictionary (from database)."""
-        if isinstance(data['metadata'], str):
-            data['metadata'] = json.loads(data['metadata'])
-        return cls(**data)
+        # Remove database-specific fields that aren't in the model
+        clean_data = {k: v for k, v in data.items() if k not in ['id']}
+        
+        if isinstance(clean_data['metadata'], str):
+            clean_data['metadata'] = json.loads(clean_data['metadata'])
+        return cls(**clean_data)
 
 
 @dataclass
@@ -81,11 +87,14 @@ class InterventionRecord:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'InterventionRecord':
         """Create from dictionary (from database)."""
-        if isinstance(data['intervention_value'], str):
-            data['intervention_value'] = json.loads(data['intervention_value'])
-        if isinstance(data['result'], str):
-            data['result'] = json.loads(data['result'])
-        return cls(**data)
+        # Remove database-specific fields that aren't in the model
+        clean_data = {k: v for k, v in data.items() if k not in ['id']}
+        
+        if isinstance(clean_data['intervention_value'], str):
+            clean_data['intervention_value'] = json.loads(clean_data['intervention_value'])
+        if isinstance(clean_data['result'], str):
+            clean_data['result'] = json.loads(clean_data['result'])
+        return cls(**clean_data)
 
 
 class CausalGraph(BaseModel):

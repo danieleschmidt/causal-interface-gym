@@ -298,16 +298,23 @@ class DatabaseManager:
                 result TEXT DEFAULT '{}',
                 FOREIGN KEY (experiment_id) REFERENCES experiments(experiment_id)
             )
-            """,
-            """
-            CREATE INDEX IF NOT EXISTS idx_experiments_id ON experiments(experiment_id);
-            CREATE INDEX IF NOT EXISTS idx_beliefs_experiment ON belief_measurements(experiment_id);
-            CREATE INDEX IF NOT EXISTS idx_interventions_experiment ON intervention_records(experiment_id);
             """
         ]
         
+        # Create indexes separately
+        indexes = [
+            "CREATE INDEX IF NOT EXISTS idx_experiments_id ON experiments(experiment_id)",
+            "CREATE INDEX IF NOT EXISTS idx_beliefs_experiment ON belief_measurements(experiment_id)",
+            "CREATE INDEX IF NOT EXISTS idx_interventions_experiment ON intervention_records(experiment_id)"
+        ]
+        
+        # Execute table creation
         for table_sql in tables:
             self.execute_query(table_sql)
+        
+        # Execute index creation
+        for index_sql in indexes:
+            self.execute_query(index_sql)
     
     def health_check(self) -> Dict[str, Any]:
         """Check database connection health.
