@@ -1,0 +1,146 @@
+{
+  "timestamp": "2025-08-27 01:56:07",
+  "overall_status": "passed",
+  "gates": {
+    "code_execution": {
+      "status": "passed",
+      "tests": {
+        "import_test": {
+          "passed": true,
+          "message": "Core imports successful"
+        },
+        "environment_creation": {
+          "passed": true,
+          "message": "Environment creation successful"
+        },
+        "ui_creation": {
+          "passed": true,
+          "message": "UI creation successful"
+        },
+        "intervention_test": {
+          "passed": true,
+          "message": "Intervention successful",
+          "result": "{'interventions_applied': {'test': 1}}"
+        }
+      },
+      "score": 100.0
+    },
+    "core_functionality": {
+      "status": "passed",
+      "tests": {
+        "causal_graph": {
+          "passed": true,
+          "message": "Causal graph operations successful"
+        },
+        "backdoor_identification": {
+          "passed": true,
+          "message": "Backdoor identification successful"
+        },
+        "intervention_effects": {
+          "passed": true,
+          "message": "Intervention effects successful"
+        },
+        "ui_components": {
+          "passed": true,
+          "message": "UI components successful"
+        }
+      },
+      "score": 100.0
+    },
+    "generation_validation": {
+      "status": "passed",
+      "tests": {
+        "generation_1": {
+          "passed": true,
+          "message": "Generation test examples/autonomous_demo.py passed"
+        },
+        "generation_2": {
+          "passed": true,
+          "message": "Generation test examples/autonomous_demo_gen2_simple.py passed"
+        },
+        "generation_3": {
+          "passed": true,
+          "message": "Generation test examples/autonomous_demo_gen3.py passed"
+        }
+      },
+      "score": 100.0
+    },
+    "security": {
+      "status": "failed",
+      "tests": {
+        "input_validation": {
+          "passed": true,
+          "message": "Input validation working"
+        },
+        "injection_protection": {
+          "passed": false,
+          "message": "Malicious input <script> not protected"
+        },
+        "error_handling": {
+          "passed": true,
+          "message": "Error handling working"
+        }
+      },
+      "score": 66.66666666666666
+    },
+    "performance": {
+      "status": "passed",
+      "tests": {
+        "response_times": {
+          "passed": true,
+          "message": "Response time: 0.000s",
+          "response_time": 0.00022149085998535156
+        },
+        "scalability": {
+          "passed": true,
+          "message": "Scalability test: 0.032s",
+          "scalability_time": 0.032160043716430664
+        },
+        "memory_efficiency": {
+          "passed": true,
+          "message": "Memory efficiency test completed"
+        }
+      },
+      "score": 100.0
+    },
+    "documentation": {
+      "status": "passed",
+      "tests": {
+        "readme_exists": {
+          "passed": true,
+          "message": "File README.md exists"
+        },
+        "examples_exist": {
+          "passed": true,
+          "message": "Found 10 example files",
+          "examples": [
+            "basic_usage.py",
+            "complete_demo.py",
+            "generation2_demo.py",
+            "generation2_simple.py",
+            "generation3_demo.py",
+            "generation3_simple.py",
+            "autonomous_demo_gen2.py",
+            "autonomous_demo.py",
+            "autonomous_demo_gen2_simple.py",
+            "autonomous_demo_gen3.py"
+          ]
+        },
+        "docstrings": {
+          "passed": true,
+          "message": "Docstring coverage: 90.0%",
+          "classes_with_docs": 9,
+          "total_classes": 10
+        }
+      },
+      "score": 100.0
+    }
+  },
+  "summary": {
+    "overall_score": 95.0,
+    "passed_gates": 5,
+    "total_gates": 6,
+    "pass_rate": 0.8333333333333334,
+    "execution_time": 6.54772686958313
+  }
+}

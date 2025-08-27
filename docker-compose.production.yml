@@ -1,217 +1,64 @@
-version: '3.8'
-
+networks:
+  terragon-network:
+    driver: bridge
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      target: production
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=http://backend:8000/api
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - causal_network
-    depends_on:
-      backend:
-        condition: service_healthy
-
-  backend:
+  causal-interface-gym:
     build:
       context: .
       dockerfile: Dockerfile.production
-    image: causal-interface-gym:latest
-    ports:
-      - "8000:8000"
-    environment:
-      - CAUSAL_GYM_ENVIRONMENT=production
-      - CAUSAL_GYM_DATABASE_URL=postgresql://causal_gym:${POSTGRES_PASSWORD}@postgres:5432/causal_gym_prod
-      - CAUSAL_GYM_REDIS_URL=redis://redis:6379
-      - CAUSAL_GYM_LOG_LEVEL=INFO
-      - CAUSAL_GYM_STRUCTURED_LOGGING=true
-      - CAUSAL_GYM_CACHE_ENABLED=true
-      - CAUSAL_GYM_MAX_CONCURRENT=20
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    volumes:
-      - causal_gym_logs:/app/logs
-      - causal_gym_data:/app/data
-    depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     deploy:
       replicas: 3
       resources:
         limits:
-          cpus: '2.0'
-          memory: 4G
+          cpus: '0.5'
+          memory: 512M
         reservations:
-          cpus: '1.0'
-          memory: 2G
+          cpus: '0.25'
+          memory: 256M
       restart_policy:
         condition: on-failure
-        delay: 10s
+        delay: 5s
         max_attempts: 3
-        window: 120s
-
-  postgres:
-    image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=causal_gym_prod
-      - POSTGRES_USER=causal_gym
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
+    - ENV=production
+    - LOG_LEVEL=info
+    - PROMETHEUS_PORT=9090
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U causal_gym"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  redis:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/health
+      timeout: 10s
     ports:
-      - "6379:6379"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.2'
-          memory: 256M
-
+    - 8000:8000
+  grafana:
+    environment:
+    - GF_SECURITY_ADMIN_PASSWORD=secure_password_change_me
+    image: grafana/grafana:latest
+    ports:
+    - 3000:3000
+    volumes:
+    - grafana-storage:/var/lib/grafana
   nginx:
+    depends_on:
+    - causal-interface-gym
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+    - 80:80
+    - 443:443
     volumes:
-      - ./nginx/production.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-      - causal_gym_logs:/var/log/nginx
-    depends_on:
-      - causal-gym-api
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-
+    - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+    - ./ssl:/etc/nginx/ssl:ro
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+    - 9090:9090
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 2G
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
-      - ./monitoring/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
-      - ./monitoring/dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://monitoring.yourdomain.com
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.docker/config.json:/config.json
-    command: --interval 30 --cleanup
-    restart: unless-stopped
-
+    - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+version: '3.8'
 volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  causal_gym_logs:
-    driver: local
-  causal_gym_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-
-networks:
-  default:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
+  grafana-storage: {}
