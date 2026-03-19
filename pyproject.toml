@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "causal-interface-gym"
+version = "0.1.0"
+description = "A gym for testing LLM agents on causal reasoning tasks (do-calculus, backdoor/frontdoor adjustment, counterfactuals)"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["causal_gym*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
